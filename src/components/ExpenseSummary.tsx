@@ -1,0 +1,106 @@
+import { Card } from "@/components/ui/card";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface ExpenseSummaryProps {
+  groupId: string | null;
+}
+
+export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
+  // Mock data - será substituído pelo backend
+  const settlements = [
+    { from: "João", to: "Maria", amount: 123.50 },
+    { from: "Pedro", to: "Maria", amount: 87.25 },
+    { from: "João", to: "Ana", amount: 23.75 },
+  ];
+
+  if (!groupId) {
+    return (
+      <Card className="p-12 text-center bg-card border-border">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+            <CheckCircle2 className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2 text-foreground">
+              Selecione um grupo
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Escolha um grupo para ver o resumo de pagamentos
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {settlements.length === 0 ? (
+        <Card className="p-12 text-center bg-card border-border">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-accent" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-foreground">
+                Tudo acertado!
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Não há pendências neste grupo
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : (
+        <>
+          {settlements.map((settlement, index) => (
+            <Card
+              key={index}
+              className="p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-destructive">
+                      {settlement.from[0]}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{settlement.from}</p>
+                    <p className="text-sm text-muted-foreground">deve pagar</p>
+                  </div>
+                </div>
+
+                <ArrowRight className="w-5 h-5 text-muted-foreground mx-4" />
+
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-accent">
+                      {settlement.to[0]}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{settlement.to}</p>
+                    <p className="text-sm text-muted-foreground">vai receber</p>
+                  </div>
+                </div>
+
+                <div className="text-right ml-4">
+                  <p className="text-xl font-bold text-accent">
+                    R$ {settlement.amount.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+
+          <Button className="w-full mt-6 bg-accent hover:bg-accent/90" size="lg">
+            <CheckCircle2 className="w-5 h-5 mr-2" />
+            Marcar Todas Como Pagas
+          </Button>
+        </>
+      )}
+    </div>
+  );
+};
