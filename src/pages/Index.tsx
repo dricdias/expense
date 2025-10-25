@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Users, Receipt, TrendingUp, ArrowRight } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PendingSettlementsNotification } from "@/components/PendingSettlementsNotification";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +50,9 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-foreground mb-2">Bem-vindo!</h1>
           <p className="text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
         </div>
+
+        {/* Pending Settlements */}
+        <PendingSettlementsNotification />
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 bg-card shadow-smooth hover:shadow-lg transition-all duration-300 border-border">

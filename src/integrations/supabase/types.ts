@@ -196,6 +196,7 @@ export type Database = {
           id: string
           settled: boolean
           settled_at: string | null
+          status: string | null
           to_user: string
         }
         Insert: {
@@ -206,6 +207,7 @@ export type Database = {
           id?: string
           settled?: boolean
           settled_at?: string | null
+          status?: string | null
           to_user: string
         }
         Update: {
@@ -216,6 +218,7 @@ export type Database = {
           id?: string
           settled?: boolean
           settled_at?: string | null
+          status?: string | null
           to_user?: string
         }
         Relationships: [
@@ -247,6 +250,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_settlement: {
+        Args: { settlement_id: string }
+        Returns: undefined
+      }
       is_group_member: {
         Args: { group_uuid: string; user_uuid: string }
         Returns: boolean

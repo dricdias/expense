@@ -17,7 +17,11 @@ export const useExpenses = (groupId: string | null) => {
         .select(`
           *,
           profiles:paid_by(full_name),
-          expense_splits(share_amount, paid)
+          expense_splits(
+            share_amount,
+            paid,
+            profiles:user_id(id, full_name)
+          )
         `)
         .eq('group_id', groupId)
         .order('created_at', { ascending: false });

@@ -1,9 +1,10 @@
 import { Card } from "@/components/ui/card";
-import { Receipt, Download, Calendar, User } from "lucide-react";
+import { Receipt, Download, Calendar, User, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 interface Expense {
   id: string;
@@ -14,6 +15,9 @@ interface Expense {
   profiles: {
     full_name: string;
   };
+  expense_splits?: Array<{
+    paid: boolean;
+  }>;
 }
 
 interface ExpensesListProps {
@@ -56,21 +60,40 @@ export const ExpensesList = ({ expenses, isLoading }: ExpensesListProps) => {
 
   return (
     <div className="space-y-4">
-      {expenses.map((expense) => (
-        <Card
-          key={expense.id}
-          className="p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Receipt className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">
-                    {expense.description}
-                  </h3>
+      {expenses.map((expense) => {
+        const allPaid = expense.expense_splits?.every(split => split.paid) ?? false;
+        
+        return (
+          <Card
+            key={expense.id}
+            className={`p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300 ${
+              allPaid ? 'opacity-60' : ''
+            }`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full ${
+                    allPaid ? 'bg-accent/10' : 'bg-primary/10'
+                  } flex items-center justify-center flex-shrink-0`}>
+                    {allPaid ? (
+                      <CheckCircle2 className="w-5 h-5 text-accent" />
+                    ) : (
+                      <Receipt className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-foreground">
+                        {expense.description}
+                      </h3>
+                      {allPaid && (
+                        <Badge variant="secondary" className="text-xs">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Pago
+                        </Badge>
+                      )}
+                    </div>
                   <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
@@ -114,7 +137,8 @@ export const ExpensesList = ({ expenses, isLoading }: ExpensesListProps) => {
             </div>
           </div>
         </Card>
-      ))}
+        );
+      })}
     </div>
   );
 };

@@ -20,7 +20,7 @@ export const useSettlements = (groupId: string | null) => {
     queryFn: async (): Promise<Settlement[]> => {
       if (!groupId) return [];
 
-      // Get all expenses and their splits for the group
+      // Get all expenses and their splits for the group (only unpaid ones)
       const { data: expenses, error } = await supabase
         .from('expenses')
         .select(`
@@ -28,13 +28,15 @@ export const useSettlements = (groupId: string | null) => {
           paid_by,
           amount,
           profiles:paid_by(id, full_name),
-          expense_splits(
+          expense_splits!inner(
             user_id,
             share_amount,
+            paid,
             profiles:user_id(id, full_name)
           )
         `)
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
+        .eq('expense_splits.paid', false);
 
       if (error) throw error;
 
