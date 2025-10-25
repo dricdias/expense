@@ -18,6 +18,10 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
   const { data: searchResults, isLoading } = useSearchUsers(searchTerm);
   const { addMember, isAdding, members } = useGroupMembers(groupId);
 
+  console.log('AddMemberDialog - searchTerm:', searchTerm);
+  console.log('AddMemberDialog - searchResults:', searchResults);
+  console.log('AddMemberDialog - isLoading:', isLoading);
+
   const handleAddMember = (userId: string) => {
     addMember({ groupId, userId }, {
       onSuccess: () => {

@@ -90,14 +90,19 @@ export const useSearchUsers = (searchTerm: string) => {
     queryFn: async () => {
       if (searchTerm.length < 3) return [];
 
+      console.log('Searching for users with term:', searchTerm);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name')
         .ilike('full_name', `%${searchTerm}%`)
         .limit(5);
 
+      console.log('Search results:', data);
+      console.log('Search error:', error);
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: searchTerm.length >= 3,
   });
