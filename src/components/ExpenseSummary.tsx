@@ -1,18 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSettlements } from "@/hooks/useSettlements";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ExpenseSummaryProps {
   groupId: string | null;
 }
 
 export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
-  // Mock data - será substituído pelo backend
-  const settlements = [
-    { from: "João", to: "Maria", amount: 123.50 },
-    { from: "Pedro", to: "Maria", amount: 87.25 },
-    { from: "João", to: "Ana", amount: 23.75 },
-  ];
+  const { settlements, isLoading } = useSettlements(groupId);
 
   if (!groupId) {
     return (
@@ -23,14 +20,26 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2 text-foreground">
-              Selecione um grupo
+              Select a group
             </h3>
             <p className="text-sm text-muted-foreground">
-              Escolha um grupo para ver o resumo de pagamentos
+              Choose a group to see payment summary
             </p>
           </div>
         </div>
       </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2].map((i) => (
+          <Card key={i} className="p-6 bg-card border-border">
+            <Skeleton className="h-16 w-full" />
+          </Card>
+        ))}
+      </div>
     );
   }
 
@@ -44,10 +53,10 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-2 text-foreground">
-                Tudo acertado!
+                All settled!
               </h3>
               <p className="text-sm text-muted-foreground">
-                Não há pendências neste grupo
+                No pending payments in this group
               </p>
             </div>
           </div>
@@ -68,7 +77,7 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{settlement.from}</p>
-                    <p className="text-sm text-muted-foreground">deve pagar</p>
+                    <p className="text-sm text-muted-foreground">should pay</p>
                   </div>
                 </div>
 
@@ -82,13 +91,13 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">{settlement.to}</p>
-                    <p className="text-sm text-muted-foreground">vai receber</p>
+                    <p className="text-sm text-muted-foreground">will receive</p>
                   </div>
                 </div>
 
                 <div className="text-right ml-4">
                   <p className="text-xl font-bold text-accent">
-                    R$ {settlement.amount.toFixed(2)}
+                    ${settlement.amount.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -97,7 +106,7 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
 
           <Button className="w-full mt-6 bg-accent hover:bg-accent/90" size="lg">
             <CheckCircle2 className="w-5 h-5 mr-2" />
-            Marcar Todas Como Pagas
+            Mark All As Paid
           </Button>
         </>
       )}

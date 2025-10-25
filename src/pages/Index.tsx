@@ -1,14 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Users, Receipt, TrendingUp } from "lucide-react";
+import { Plus, Users, Receipt, TrendingUp, LogOut } from "lucide-react";
 import { GroupList } from "@/components/GroupList";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { ExpenseSummary } from "@/components/ExpenseSummary";
+import { useAuth } from "@/hooks/useAuth";
+import { useGroups } from "@/hooks/useGroups";
+import { useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const { user, signOut, loading: authLoading } = useAuth();
+  const { groups, isLoading: groupsLoading } = useGroups();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Receipt className="w-8 h-8 text-primary" />
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalGroups = groups?.length || 0;
+  const totalExpenses = groups?.reduce((sum, group: any) => {
+    const groupTotal = group.expenses?.reduce((expSum: number, exp: any) => expSum + Number(exp.amount), 0) || 0;
+    return sum + groupTotal;
+  }, 0) || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -20,19 +52,29 @@ const Index = () => {
               <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
                 <Receipt className="w-6 h-6" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">RachaDespesas</h1>
-                <p className="text-sm text-primary-foreground/80">Divida gastos facilmente</p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold">RachaDespesas</h1>
+              <p className="text-sm text-primary-foreground/80">Split expenses easily</p>
             </div>
+          </div>
+          <div className="flex gap-2">
             <Button 
               onClick={() => setShowCreateGroup(true)}
               size="lg"
               className="bg-white/20 backdrop-blur-sm hover:bg-white/30 border-white/30 border"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Novo Grupo
+              New Group
             </Button>
+            <Button 
+              onClick={signOut}
+              size="lg"
+              variant="ghost"
+              className="text-primary-foreground hover:bg-white/10"
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
           </div>
         </div>
       </header>
@@ -47,8 +89,12 @@ const Index = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Grupos Ativos</p>
-                <p className="text-2xl font-bold text-foreground">3</p>
+                <p className="text-sm text-muted-foreground">Active Groups</p>
+                {groupsLoading ? (
+                  <Skeleton className="h-8 w-12" />
+                ) : (
+                  <p className="text-2xl font-bold text-foreground">{totalGroups}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -59,8 +105,12 @@ const Index = () => {
                 <Receipt className="w-6 h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Despesas do Mês</p>
-                <p className="text-2xl font-bold text-foreground">R$ 1.847,00</p>
+                <p className="text-sm text-muted-foreground">Total Expenses</p>
+                {groupsLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className="text-2xl font-bold text-foreground">${totalExpenses.toFixed(2)}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -71,8 +121,8 @@ const Index = () => {
                 <TrendingUp className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">A Receber</p>
-                <p className="text-2xl font-bold text-accent">R$ 234,50</p>
+                <p className="text-sm text-muted-foreground">To Receive</p>
+                <p className="text-2xl font-bold text-accent">$0.00</p>
               </div>
             </div>
           </Card>
@@ -81,12 +131,12 @@ const Index = () => {
         {/* Groups and Summary */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Seus Grupos</h2>
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Your Groups</h2>
             <GroupList onSelectGroup={setSelectedGroupId} selectedGroupId={selectedGroupId} />
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Resumo de Pagamentos</h2>
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Payment Summary</h2>
             <ExpenseSummary groupId={selectedGroupId} />
           </div>
         </div>
