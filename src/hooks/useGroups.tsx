@@ -29,7 +29,6 @@ export const useGroups = () => {
     mutationFn: async ({ name, description, members }: { name: string; description?: string; members: string[] }) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Create group
       const { data: group, error: groupError } = await supabase
         .from('groups')
         .insert({
@@ -42,7 +41,6 @@ export const useGroups = () => {
 
       if (groupError) throw groupError;
 
-      // Add creator as member (only creator for now)
       const { error: membersError } = await supabase
         .from('group_members')
         .insert({ group_id: group.id, user_id: user.id });
@@ -67,10 +65,64 @@ export const useGroups = () => {
     },
   });
 
+  const updateGroup = useMutation({
+    mutationFn: async ({ groupId, name }: { groupId: string; name: string }) => {
+      const { error } = await supabase
+        .from('groups')
+        .update({ name })
+        .eq('id', groupId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast({
+        title: "Group updated!",
+        description: "Your group has been updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteGroup = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { error } = await supabase
+        .from('groups')
+        .delete()
+        .eq('id', groupId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast({
+        title: "Group deleted",
+        description: "The group has been deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     groups,
     isLoading,
     createGroup: createGroup.mutate,
+    updateGroup: updateGroup.mutate,
+    deleteGroup: deleteGroup.mutate,
     isCreating: createGroup.isPending,
+    isUpdating: updateGroup.isPending,
+    isDeleting: deleteGroup.isPending,
   };
 };

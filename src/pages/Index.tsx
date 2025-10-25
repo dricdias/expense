@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, Users, Receipt, TrendingUp, LogOut } from "lucide-react";
 import { GroupList } from "@/components/GroupList";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
+import { GroupDetailsPanel } from "@/components/GroupDetailsPanel";
 import { ExpenseSummary } from "@/components/ExpenseSummary";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
@@ -128,7 +129,7 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Groups and Summary */}
+        {/* Groups and Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h2 className="text-2xl font-bold mb-6 text-foreground">Your Groups</h2>
@@ -136,9 +137,15 @@ const Index = () => {
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Payment Summary</h2>
-            <ExpenseSummary groupId={selectedGroupId} />
+            <h2 className="text-2xl font-bold mb-6 text-foreground">Group Details</h2>
+            <GroupDetailsPanel groupId={selectedGroupId} />
           </div>
+        </div>
+
+        {/* Payment Summary */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6 text-foreground">Payment Summary</h2>
+          <ExpenseSummary groupId={selectedGroupId} />
         </div>
       </main>
 
