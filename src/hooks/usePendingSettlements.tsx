@@ -38,7 +38,7 @@ export const usePendingSettlements = () => {
           group_id,
           status,
           created_at,
-          from_profile:profiles!settlements_from_user_fkey(full_name),
+          from_profile:profiles!from_user(full_name),
           group:groups(name)
         `)
         .eq('to_user', user.id)
