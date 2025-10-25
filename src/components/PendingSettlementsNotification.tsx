@@ -17,6 +17,9 @@ export const PendingSettlementsNotification = () => {
     isRejecting 
   } = usePendingSettlements();
 
+  console.log('PendingSettlementsNotification - isLoading:', isLoading);
+  console.log('PendingSettlementsNotification - pendingSettlements:', pendingSettlements);
+
   if (isLoading) {
     return (
       <Card className="p-6 bg-card border-border">

@@ -23,10 +23,17 @@ export const usePendingSettlements = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: pendingSettlements, isLoading } = useQuery({
+  console.log('usePendingSettlements - user:', user?.id);
+
+  const { data: pendingSettlements, isLoading, error } = useQuery({
     queryKey: ['pending-settlements', user?.id],
     queryFn: async (): Promise<PendingSettlement[]> => {
-      if (!user) return [];
+      if (!user) {
+        console.log('No user, returning empty array');
+        return [];
+      }
+
+      console.log('Fetching pending settlements for user:', user.id);
 
       const { data, error } = await supabase
         .from('settlements')
@@ -45,11 +52,16 @@ export const usePendingSettlements = () => {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
+      console.log('Pending settlements data:', data);
+      console.log('Pending settlements error:', error);
+
       if (error) throw error;
       return data as PendingSettlement[];
     },
     enabled: !!user,
   });
+
+  console.log('Pending settlements result:', pendingSettlements);
 
   const approveSettlement = useMutation({
     mutationFn: async (settlementId: string) => {
