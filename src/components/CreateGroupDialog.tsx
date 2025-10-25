@@ -18,10 +18,8 @@ export const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps
 
   const handleSubmit = () => {
     if (!groupName.trim()) return;
-    const validMembers = members.filter(m => m.trim() !== "");
-    if (validMembers.length === 0) return;
 
-    createGroup({ name: groupName, members: validMembers }, {
+    createGroup({ name: groupName, members: [] }, {
       onSuccess: () => {
         setGroupName("");
         setMembers([""]);
@@ -44,27 +42,14 @@ export const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps
             <Label htmlFor="group-name" className="text-foreground">Group Name</Label>
             <Input id="group-name" placeholder="Ex: Beach Trip 2025" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="bg-background border-border" />
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-foreground">Members (Email or Name)</Label>
-              <Button type="button" variant="outline" size="sm" onClick={() => setMembers([...members, ""])} className="border-border">
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2 max-h-[200px] overflow-y-auto">
-              {members.map((member, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input placeholder={`Member ${index + 1}`} value={member} onChange={(e) => { const newMembers = [...members]; newMembers[index] = e.target.value; setMembers(newMembers); }} className="bg-background border-border" />
-                  {members.length > 1 && <Button type="button" variant="ghost" size="icon" onClick={() => setMembers(members.filter((_, i) => i !== index))} className="shrink-0"><X className="w-4 h-4" /></Button>}
-                </div>
-              ))}
-            </div>
+          <div className="space-y-2">
+            <Label className="text-muted-foreground text-sm">You will be added as the group creator</Label>
+            <p className="text-xs text-muted-foreground">Other members can be invited after creating the group</p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!groupName.trim() || members.every(m => !m.trim()) || isCreating} className="bg-primary hover:bg-primary/90">{isCreating ? "Creating..." : "Create Group"}</Button>
+          <Button onClick={handleSubmit} disabled={!groupName.trim() || isCreating} className="bg-primary hover:bg-primary/90">{isCreating ? "Creating..." : "Create Group"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

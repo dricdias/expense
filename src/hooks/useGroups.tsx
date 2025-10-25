@@ -42,15 +42,10 @@ export const useGroups = () => {
 
       if (groupError) throw groupError;
 
-      // Add creator as member
-      const memberInserts = [
-        { group_id: group.id, user_id: user.id },
-        ...members.map(email => ({ group_id: group.id, user_id: email }))
-      ];
-
+      // Add creator as member (only creator for now)
       const { error: membersError } = await supabase
         .from('group_members')
-        .insert(memberInserts);
+        .insert({ group_id: group.id, user_id: user.id });
 
       if (membersError) throw membersError;
 
