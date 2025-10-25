@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface Settlement {
   from: string;
@@ -12,6 +13,7 @@ interface Settlement {
 
 export const useSettlements = (groupId: string | null) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: settlements, isLoading } = useQuery({
     queryKey: ['settlements', groupId],
@@ -99,8 +101,47 @@ export const useSettlements = (groupId: string | null) => {
     enabled: !!groupId && !!user,
   });
 
+  const markSettlementsAsPaid = useMutation({
+    mutationFn: async (settlementsList: Settlement[]) => {
+      if (!groupId) throw new Error('Group ID is required');
+
+      // Insert settlements into the database
+      const settlementsToInsert = settlementsList.map(settlement => ({
+        group_id: groupId,
+        from_user: settlement.fromId,
+        to_user: settlement.toId,
+        amount: settlement.amount,
+        settled: true,
+        settled_at: new Date().toISOString(),
+      }));
+
+      const { error } = await supabase
+        .from('settlements')
+        .insert(settlementsToInsert);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+      toast({
+        title: "Acertos registrados!",
+        description: "Todos os pagamentos foram marcados como realizados",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     settlements: settlements || [],
     isLoading,
+    markAsPaid: markSettlementsAsPaid.mutate,
+    isMarking: markSettlementsAsPaid.isPending,
   };
 };

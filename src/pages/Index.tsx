@@ -1,20 +1,15 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Users, Receipt, TrendingUp, LogOut } from "lucide-react";
-import { GroupList } from "@/components/GroupList";
-import { CreateGroupDialog } from "@/components/CreateGroupDialog";
-import { GroupDetailsPanel } from "@/components/GroupDetailsPanel";
-import { ExpenseSummary } from "@/components/ExpenseSummary";
+import { Users, Receipt, TrendingUp, ArrowRight } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { groups, isLoading: groupsLoading } = useGroups();
   const navigate = useNavigate();
 
@@ -47,43 +42,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header with gradient */}
-      <header className="bg-gradient-primary text-primary-foreground shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Receipt className="w-6 h-6" />
-              </div>
-            <div>
-              <h1 className="text-2xl font-bold">RachaDespesas</h1>
-              <p className="text-sm text-primary-foreground/80">Split expenses easily</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => setShowCreateGroup(true)}
-              size="lg"
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 border-white/30 border"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              New Group
-            </Button>
-            <Button 
-              onClick={signOut}
-              size="lg"
-              variant="ghost"
-              className="text-primary-foreground hover:bg-white/10"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Bem-vindo!</h1>
+          <p className="text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
+        </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 bg-card shadow-smooth hover:shadow-lg transition-all duration-300 border-border">
@@ -131,27 +96,77 @@ const Index = () => {
           </Card>
         </div>
 
-        {/* Groups and Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Your Groups</h2>
-            <GroupList onSelectGroup={setSelectedGroupId} selectedGroupId={selectedGroupId} />
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold mb-6 text-foreground">Group Details</h2>
-            <GroupDetailsPanel groupId={selectedGroupId} />
-          </div>
-        </div>
-
-        {/* Payment Summary */}
+        {/* Recent Groups */}
         <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Payment Summary</h2>
-          <ExpenseSummary groupId={selectedGroupId} />
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-foreground">Grupos Recentes</h2>
+            <Button variant="outline" onClick={() => navigate('/groups')}>
+              Ver Todos
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+
+          {groupsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="p-6 bg-card border-border">
+                  <Skeleton className="h-20 w-full" />
+                </Card>
+              ))}
+            </div>
+          ) : groups && groups.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {groups.slice(0, 3).map((group: any) => {
+                const memberCount = group.group_members?.length || 0;
+                const totalAmount = group.expenses?.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0) || 0;
+
+                return (
+                  <Card
+                    key={group.id}
+                    className="p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                    onClick={() => navigate(`/groups/${group.id}`)}
+                  >
+                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                      {group.name}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        <span>{memberCount}</span>
+                      </div>
+                    </div>
+                    <div className="pt-4 border-t border-border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Total</span>
+                        <span className="text-lg font-bold text-foreground">${totalAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="p-12 text-center bg-card border-border">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                  <Users className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">
+                    Nenhum grupo ainda
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Crie seu primeiro grupo para começar
+                  </p>
+                  <Button onClick={() => navigate('/groups')}>
+                    Começar
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </main>
-
-      <CreateGroupDialog open={showCreateGroup} onOpenChange={setShowCreateGroup} />
     </div>
   );
 };

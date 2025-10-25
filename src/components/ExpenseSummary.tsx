@@ -9,7 +9,13 @@ interface ExpenseSummaryProps {
 }
 
 export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
-  const { settlements, isLoading } = useSettlements(groupId);
+  const { settlements, isLoading, markAsPaid, isMarking } = useSettlements(groupId);
+
+  const handleMarkAsPaid = () => {
+    if (settlements.length > 0) {
+      markAsPaid(settlements);
+    }
+  };
 
   if (!groupId) {
     return (
@@ -104,9 +110,14 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
             </Card>
           ))}
 
-          <Button className="w-full mt-6 bg-accent hover:bg-accent/90" size="lg">
+          <Button 
+            className="w-full mt-6 bg-accent hover:bg-accent/90" 
+            size="lg"
+            onClick={handleMarkAsPaid}
+            disabled={isMarking}
+          >
             <CheckCircle2 className="w-5 h-5 mr-2" />
-            Mark All As Paid
+            {isMarking ? "Processando..." : "Marcar Todos Como Pagos"}
           </Button>
         </>
       )}

@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Plus, Users, Receipt, Settings } from "lucide-react";
+import { ArrowLeft, Plus, Users, Settings } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 import { ExpensesList } from "@/components/ExpensesList";
 import { ExpenseSummary } from "@/components/ExpenseSummary";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -63,53 +64,50 @@ const GroupDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-gradient-primary text-primary-foreground shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/groups')}
-                className="text-primary-foreground hover:bg-white/10"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                {!group ? (
-                  <Skeleton className="h-8 w-48 bg-white/20" />
-                ) : (
-                  <>
-                    <h1 className="text-2xl font-bold">{group.name}</h1>
-                    <p className="text-sm text-primary-foreground/80">
-                      {members?.length || 0} {members?.length === 1 ? 'membro' : 'membros'}
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setShowAddExpense(true)}
-                size="lg"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 border-white/30 border"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Nova Despesa
-              </Button>
-              <Button
-                onClick={() => setShowEditGroup(true)}
-                size="lg"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-white/10"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
+      <Navbar />
+
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate('/groups')}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              {!group ? (
+                <Skeleton className="h-8 w-48" />
+              ) : (
+                <>
+                  <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {members?.length || 0} {members?.length === 1 ? 'membro' : 'membros'}
+                  </p>
+                </>
+              )}
             </div>
           </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowAddExpense(true)}
+              size="lg"
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nova Despesa
+            </Button>
+            <Button
+              onClick={() => setShowEditGroup(true)}
+              size="lg"
+              variant="outline"
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">

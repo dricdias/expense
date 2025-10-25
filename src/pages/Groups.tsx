@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Users, Receipt, ArrowRight, LogOut } from "lucide-react";
+import { Plus, Users, Receipt, ArrowRight } from "lucide-react";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
-import { useAuth } from "@/hooks/useAuth";
+import { Navbar } from "@/components/Navbar";
 import { useGroups } from "@/hooks/useGroups";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Groups = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const { user, signOut } = useAuth();
   const { groups, isLoading } = useGroups();
   const navigate = useNavigate();
 
@@ -21,43 +20,20 @@ const Groups = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-gradient-primary text-primary-foreground shadow-lg">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                <Receipt className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">RachaDespesas</h1>
-                <p className="text-sm text-primary-foreground/80">Seus Grupos</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setShowCreateGroup(true)}
-                size="lg"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 border-white/30 border"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Novo Grupo
-              </Button>
-              <Button 
-                onClick={signOut}
-                size="lg"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-white/10"
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-3xl font-bold text-foreground">Meus Grupos</h2>
+          <Button 
+            onClick={() => setShowCreateGroup(true)}
+            size="lg"
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Novo Grupo
+          </Button>
+        </div>
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="p-6 bg-card shadow-smooth hover:shadow-lg transition-all duration-300 border-border">
@@ -93,9 +69,7 @@ const Groups = () => {
           </Card>
         </div>
 
-        {/* Groups List */}
         <div>
-          <h2 className="text-2xl font-bold mb-6 text-foreground">Meus Grupos</h2>
           
           {isLoading ? (
             <div className="space-y-4">
