@@ -107,14 +107,14 @@ export const useSettlements = (groupId: string | null) => {
     mutationFn: async (settlementsList: Settlement[]) => {
       if (!groupId) throw new Error('Group ID is required');
 
-      // Insert settlements into the database
+      // Insert settlements into the database with pending status
       const settlementsToInsert = settlementsList.map(settlement => ({
         group_id: groupId,
         from_user: settlement.fromId,
         to_user: settlement.toId,
         amount: settlement.amount,
-        settled: true,
-        settled_at: new Date().toISOString(),
+        settled: false, // Not settled yet, waiting for approval
+        status: 'pending',
       }));
 
       const { error } = await supabase
@@ -126,9 +126,10 @@ export const useSettlements = (groupId: string | null) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });
       queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-settlements'] });
       toast({
-        title: "Acertos registrados!",
-        description: "Todos os pagamentos foram marcados como realizados",
+        title: "Solicitação enviada!",
+        description: "Aguardando aprovação de quem vai receber o pagamento",
       });
     },
     onError: (error: any) => {

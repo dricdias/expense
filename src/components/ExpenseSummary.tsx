@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSettlements } from "@/hooks/useSettlements";
+import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ExpenseSummaryProps {
@@ -10,12 +11,16 @@ interface ExpenseSummaryProps {
 
 export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
   const { settlements, isLoading, markAsPaid, isMarking } = useSettlements(groupId);
+  const { user } = useAuth();
 
   const handleMarkAsPaid = () => {
     if (settlements.length > 0) {
       markAsPaid(settlements);
     }
   };
+
+  // Check if current user has any debts to pay
+  const userHasDebts = settlements.some(s => s.fromId === user?.id);
 
   if (!groupId) {
     return (
@@ -110,15 +115,17 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
             </Card>
           ))}
 
-          <Button 
-            className="w-full mt-6 bg-accent hover:bg-accent/90" 
-            size="lg"
-            onClick={handleMarkAsPaid}
-            disabled={isMarking}
-          >
-            <CheckCircle2 className="w-5 h-5 mr-2" />
-            {isMarking ? "Processando..." : "Marcar Todos Como Pagos"}
-          </Button>
+          {userHasDebts && (
+            <Button 
+              className="w-full mt-6 bg-accent hover:bg-accent/90" 
+              size="lg"
+              onClick={handleMarkAsPaid}
+              disabled={isMarking}
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              {isMarking ? "Processando..." : "Confirmar que Paguei"}
+            </Button>
+          )}
         </>
       )}
     </div>
