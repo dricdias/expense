@@ -14,7 +14,7 @@ export const useGroupMembers = (groupId: string | null) => {
         .from('group_members')
         .select(`
           *,
-          profiles:user_id(id, full_name, avatar_url)
+          profiles:user_id(id, full_name, avatar_url, email)
         `)
         .eq('group_id', groupId);
 
