@@ -14,19 +14,30 @@ export const useGroupInvites = () => {
     queryFn: async () => {
       if (!user) return [];
 
-      const { data, error } = await supabase
+      const { data: invites, error } = await supabase
         .from('group_invites')
-        .select(`
-          *,
-          group:groups(name),
-          invited_by_profile:profiles!group_invites_invited_by_fkey(full_name, avatar_url)
-        `)
+        .select('*, group:groups(name)')
         .eq('invited_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      if (!invites || invites.length === 0) return [];
+
+      // Fetch profiles for inviters
+      const inviterIds = invites.map((invite: any) => invite.invited_by);
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', inviterIds);
+
+      if (profileError) throw profileError;
+
+      // Combine data
+      return invites.map((invite: any) => ({
+        ...invite,
+        invited_by_profile: profiles?.find((p: any) => p.id === invite.invited_by)
+      }));
     },
     enabled: !!user,
   });
