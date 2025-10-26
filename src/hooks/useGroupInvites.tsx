@@ -19,7 +19,7 @@ export const useGroupInvites = () => {
         .select(`
           *,
           group:groups(name),
-          invited_by_profile:profiles!invited_by(full_name, avatar_url)
+          invited_by_profile:profiles!group_invites_invited_by_fkey(full_name, avatar_url)
         `)
         .eq('invited_user_id', user.id)
         .eq('status', 'pending')
