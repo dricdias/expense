@@ -121,7 +121,7 @@ const GroupDetails = () => {
           <TabsContent value="expenses" className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-6 text-foreground">Despesas do Grupo</h2>
-              <ExpensesList expenses={expenses || []} isLoading={expensesLoading} />
+              <ExpensesList expenses={expenses || []} isLoading={expensesLoading} groupId={groupId} />
             </div>
           </TabsContent>
 

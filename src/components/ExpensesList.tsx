@@ -1,10 +1,12 @@
 import { Card } from "@/components/ui/card";
-import { Receipt, Download, Calendar, User, CheckCircle2 } from "lucide-react";
+import { Receipt, Download, Calendar, User, CheckCircle2, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Expense {
   id: string;
@@ -17,15 +19,60 @@ interface Expense {
   };
   expense_splits?: Array<{
     paid: boolean;
+    user_id?: string;
+    share_amount?: number;
+    profiles: {
+      full_name: string;
+      id?: string;
+    };
   }>;
+}
+
+interface Settlement {
+  id: string;
+  from_user: string;
+  to_user: string;
+  amount: number;
+  settled_at: string;
+  from_profile: {
+    full_name: string;
+  };
+  to_profile: {
+    full_name: string;
+  };
 }
 
 interface ExpensesListProps {
   expenses: Expense[];
   isLoading: boolean;
+  groupId: string;
 }
 
-export const ExpensesList = ({ expenses, isLoading }: ExpensesListProps) => {
+export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps) => {
+  // Fetch approved settlements for this group
+  const { data: settlements } = useQuery({
+    queryKey: ['approved-settlements', groupId],
+    queryFn: async (): Promise<Settlement[]> => {
+      const { data, error } = await supabase
+        .from('settlements')
+        .select(`
+          id,
+          from_user,
+          to_user,
+          amount,
+          settled_at,
+          from_profile:profiles!from_user(full_name),
+          to_profile:profiles!to_user(full_name)
+        `)
+        .eq('group_id', groupId)
+        .eq('status', 'approved')
+        .not('settled_at', 'is', null);
+
+      if (error) throw error;
+      return data as Settlement[];
+    },
+    enabled: !!groupId,
+  });
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -60,6 +107,39 @@ export const ExpensesList = ({ expenses, isLoading }: ExpensesListProps) => {
 
   return (
     <div className="space-y-4">
+      {/* Show approved settlements first */}
+      {settlements && settlements.length > 0 && (
+        <Card className="p-6 bg-accent/5 border-accent/20 border-2">
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle2 className="w-5 h-5 text-accent" />
+            <h3 className="font-semibold text-foreground">Acertos Aprovados</h3>
+          </div>
+          <div className="space-y-3">
+            {settlements.map((settlement) => (
+              <div key={settlement.id} className="flex items-center justify-between p-3 bg-background rounded-lg">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="w-4 h-4 text-accent" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      <span className="text-primary">{settlement.from_profile.full_name}</span>
+                      {' → '}
+                      <span className="text-accent">{settlement.to_profile.full_name}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(settlement.settled_at), "d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
+                  ${Number(settlement.amount).toFixed(2)}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Expenses list */}
       {expenses.map((expense) => {
         const allPaid = expense.expense_splits?.every(split => split.paid) ?? false;
         
@@ -94,49 +174,49 @@ export const ExpensesList = ({ expenses, isLoading }: ExpensesListProps) => {
                         </Badge>
                       )}
                     </div>
-                  <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      <span>Pago por {expense.profiles.full_name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {format(new Date(expense.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </span>
+                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        <span>Pago por {expense.profiles.full_name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>
+                          {format(new Date(expense.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col items-end gap-3">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-primary">
-                  ${Number(expense.amount).toFixed(2)}
-                </p>
-              </div>
-              
-              {expense.receipt_url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="gap-2"
-                >
-                  <a 
-                    href={expense.receipt_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+              <div className="flex flex-col items-end gap-3">
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-primary">
+                    ${Number(expense.amount).toFixed(2)}
+                  </p>
+                </div>
+                
+                {expense.receipt_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="gap-2"
                   >
-                    <Download className="w-4 h-4" />
-                    Ver Anexo
-                  </a>
-                </Button>
-              )}
+                    <a 
+                      href={expense.receipt_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Download className="w-4 h-4" />
+                      Ver Anexo
+                    </a>
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
         );
       })}
     </div>
