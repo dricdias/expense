@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Users, Receipt, TrendingUp, TrendingDown, ArrowRight, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { PendingSettlementsNotification } from "@/components/PendingSettlementsNotification";
+import { GroupInvitesNotification } from "@/components/GroupInvitesNotification";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
@@ -63,6 +64,9 @@ const Index = () => {
 
         {/* Pending Settlements */}
         <PendingSettlementsNotification />
+
+        {/* Group Invites Notification */}
+        <GroupInvitesNotification />
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 bg-card shadow-smooth hover:shadow-lg transition-all duration-300 border-border">

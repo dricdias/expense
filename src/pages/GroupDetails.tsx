@@ -9,6 +9,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
 import { AddMemberDialog } from "@/components/AddMemberDialog";
@@ -145,12 +146,18 @@ const GroupDetails = () => {
                   {members?.map((member: any) => (
                     <Card key={member.id} className="p-4 bg-card border-border">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Users className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={member.profiles?.avatar_url || undefined} />
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {(member.profiles?.full_name || 'U').split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">
                             {member.profiles?.full_name || 'Usuário'}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {member.profiles?.email || 'Email não disponível'}
                           </p>
                         </div>
                       </div>
