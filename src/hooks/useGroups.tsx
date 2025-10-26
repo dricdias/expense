@@ -10,17 +10,51 @@ export const useGroups = () => {
   const { data: groups, isLoading } = useQuery({
     queryKey: ['groups', user?.id],
     queryFn: async () => {
+      if (!user) return [];
+
       const { data, error } = await supabase
         .from('groups')
         .select(`
           *,
-          group_members(count),
-          expenses(amount)
+          group_members(count)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // For each group, calculate unsettled expenses
+      const groupsWithBalances = await Promise.all(
+        (data || []).map(async (group) => {
+          // Get the last approved settlement date
+          const { data: lastSettlement } = await supabase
+            .from('settlements')
+            .select('settled_at')
+            .eq('group_id', group.id)
+            .eq('status', 'approved')
+            .not('settled_at', 'is', null)
+            .order('settled_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          const lastSettlementDate = lastSettlement?.settled_at || '1970-01-01';
+
+          // Get expenses created after the last settlement
+          const { data: expenses } = await supabase
+            .from('expenses')
+            .select('amount, created_at')
+            .eq('group_id', group.id)
+            .gt('created_at', lastSettlementDate);
+
+          const unsettledTotal = expenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0;
+
+          return {
+            ...group,
+            unsettledTotal,
+          };
+        })
+      );
+
+      return groupsWithBalances;
     },
     enabled: !!user,
   });
