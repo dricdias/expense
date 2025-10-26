@@ -43,7 +43,7 @@ const GroupDetails = () => {
     if (groupId) {
       deleteGroup(groupId, {
         onSuccess: () => {
-          navigate('/groups');
+          navigate('/');
         }
       });
     }
@@ -54,8 +54,8 @@ const GroupDetails = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">Grupo não encontrado</p>
-          <Button onClick={() => navigate('/groups')} className="mt-4">
-            Voltar para Grupos
+          <Button onClick={() => navigate('/')} className="mt-4">
+            Voltar para Home
           </Button>
         </Card>
       </div>
@@ -67,21 +67,22 @@ const GroupDetails = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4 w-full sm:w-auto">
             <Button
               variant="outline"
               size="icon"
-              onClick={() => navigate('/groups')}
+              onClick={() => navigate('/')}
+              className="flex-shrink-0"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
+            <div className="min-w-0 flex-1">
               {!group ? (
                 <Skeleton className="h-8 w-48" />
               ) : (
                 <>
-                  <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group.name}</h1>
                   <p className="text-sm text-muted-foreground">
                     {members?.length || 0} {members?.length === 1 ? 'membro' : 'membros'}
                   </p>
@@ -89,19 +90,20 @@ const GroupDetails = () => {
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button 
               onClick={() => setShowAddExpense(true)}
               size="lg"
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 flex-1 sm:flex-initial"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Nova Despesa
+              <Plus className="w-5 h-5 sm:mr-2" />
+              <span className="hidden sm:inline">Nova Despesa</span>
             </Button>
             <Button
               onClick={() => setShowEditGroup(true)}
               size="lg"
               variant="outline"
+              className="flex-shrink-0"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -112,31 +114,31 @@ const GroupDetails = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <Tabs defaultValue="expenses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-md">
-            <TabsTrigger value="expenses">Despesas</TabsTrigger>
-            <TabsTrigger value="settlements">Acertos</TabsTrigger>
-            <TabsTrigger value="members">Membros</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 max-w-full sm:max-w-md">
+            <TabsTrigger value="expenses" className="text-xs sm:text-sm">Despesas</TabsTrigger>
+            <TabsTrigger value="settlements" className="text-xs sm:text-sm">Acertos</TabsTrigger>
+            <TabsTrigger value="members" className="text-xs sm:text-sm">Membros</TabsTrigger>
           </TabsList>
 
           <TabsContent value="expenses" className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Despesas do Grupo</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-foreground">Despesas do Grupo</h2>
               <ExpensesList expenses={expenses || []} isLoading={expensesLoading} groupId={groupId} />
             </div>
           </TabsContent>
 
           <TabsContent value="settlements" className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-6 text-foreground">Quem Deve para Quem</h2>
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-foreground">Quem Deve para Quem</h2>
               <ExpenseSummary groupId={groupId} />
             </div>
           </TabsContent>
 
           <TabsContent value="members" className="space-y-6">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Membros do Grupo</h2>
-                <Button onClick={() => setShowAddMember(true)}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Membros do Grupo</h2>
+                <Button onClick={() => setShowAddMember(true)} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Membro
                 </Button>

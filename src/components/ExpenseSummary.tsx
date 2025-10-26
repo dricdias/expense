@@ -77,37 +77,41 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
           {settlements.map((settlement, index) => (
             <Card
               key={index}
-              className="p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
+              className="p-4 sm:p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                {/* From User */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-semibold text-destructive">
                       {settlement.from[0]}
                     </span>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{settlement.from}</p>
-                    <p className="text-sm text-muted-foreground">should pay</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">{settlement.from}</p>
+                    <p className="text-sm text-muted-foreground">deve pagar</p>
                   </div>
                 </div>
 
-                <ArrowRight className="w-5 h-5 text-muted-foreground mx-4" />
+                {/* Arrow */}
+                <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto sm:mx-4 rotate-90 sm:rotate-0 flex-shrink-0" />
 
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                {/* To User */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-semibold text-accent">
                       {settlement.to[0]}
                     </span>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{settlement.to}</p>
-                    <p className="text-sm text-muted-foreground">will receive</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">{settlement.to}</p>
+                    <p className="text-sm text-muted-foreground">vai receber</p>
                   </div>
                 </div>
 
-                <div className="text-right ml-4">
-                  <p className="text-xl font-bold text-accent">
+                {/* Amount */}
+                <div className="text-center sm:text-right sm:ml-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-border">
+                  <p className="text-2xl sm:text-xl font-bold text-accent">
                     ${settlement.amount.toFixed(2)}
                   </p>
                 </div>
