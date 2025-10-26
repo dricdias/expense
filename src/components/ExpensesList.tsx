@@ -230,64 +230,64 @@ export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps
             return (
               <Card
                 key={expense.id}
-                className={`p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300 ${
+                className={`p-4 md:p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300 ${
                   allPaid ? 'opacity-60' : ''
                 }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-10 h-10 rounded-full ${
-                        allPaid ? 'bg-accent/10' : 'bg-primary/10'
-                      } flex items-center justify-center flex-shrink-0`}>
-                        {allPaid ? (
-                          <CheckCircle2 className="w-5 h-5 text-accent" />
-                        ) : (
-                          <Receipt className="w-5 h-5 text-primary" />
+                <div className="flex flex-col gap-4">
+                  {/* Header with icon and description */}
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-full ${
+                      allPaid ? 'bg-accent/10' : 'bg-primary/10'
+                    } flex items-center justify-center flex-shrink-0`}>
+                      {allPaid ? (
+                        <CheckCircle2 className="w-5 h-5 text-accent" />
+                      ) : (
+                        <Receipt className="w-5 h-5 text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-foreground break-words">
+                          {expense.description}
+                        </h3>
+                        {allPaid && (
+                          <Badge variant="secondary" className="text-xs flex-shrink-0">
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Pago
+                          </Badge>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">
-                            {expense.description}
-                          </h3>
-                          {allPaid && (
-                            <Badge variant="secondary" className="text-xs">
-                              <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Pago
-                            </Badge>
-                          )}
+                      <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">Pago por {expense.profiles.full_name}</span>
                         </div>
-                        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            <span>Pago por {expense.profiles.full_name}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {format(new Date(expense.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                            </span>
-                          </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-xs sm:text-sm">
+                            {format(new Date(expense.created_at), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3">
-                    <div className="text-right">
+                  {/* Amount and actions */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-border">
+                    <div className="text-left sm:text-right order-2 sm:order-1">
                       <p className="text-2xl font-bold text-primary">
                         ${Number(expense.amount).toFixed(2)}
                       </p>
                     </div>
                     
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2 order-1 sm:order-2">
                       {expense.receipt_url && (
                         <Button
                           variant="outline"
                           size="sm"
                           asChild
-                          className="gap-2"
+                          className="gap-2 text-xs sm:text-sm"
                         >
                           <a 
                             href={expense.receipt_url} 
@@ -295,7 +295,8 @@ export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps
                             rel="noopener noreferrer"
                           >
                             <Download className="w-4 h-4" />
-                            Ver Anexo
+                            <span className="hidden xs:inline">Ver Anexo</span>
+                            <span className="xs:hidden">Anexo</span>
                           </a>
                         </Button>
                       )}
@@ -313,15 +314,19 @@ export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps
                               setEditDescription(expense.description);
                               setEditAmount(expense.amount.toString());
                             }}
+                            className="gap-2"
                           >
                             <Pencil className="w-4 h-4" />
+                            <span className="sr-only">Editar</span>
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setDeleteExpenseId(expense.id)}
+                            className="gap-2"
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span className="sr-only">Excluir</span>
                           </Button>
                         </>
                       )}
