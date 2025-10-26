@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Receipt } from "lucide-react";
+import { PieChart } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -90,9 +90,9 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8 bg-card border-border shadow-elegant">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <Receipt className="w-8 h-8 text-primary" />
+            <PieChart className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">RachaDespesas</h1>
+          <h1 className="text-3xl font-bold text-foreground">Agility Expenses</h1>
           <p className="text-sm text-muted-foreground mt-2">Split expenses easily</p>
         </div>
 
