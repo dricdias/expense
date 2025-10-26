@@ -32,7 +32,7 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
   // Get member IDs to check if user is already a member
   const memberIds = members?.map((m: any) => m.user_id) || [];
 
-  // Search users by name
+  // Search users by name or email
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ['user-search', searchTerm],
     queryFn: async () => {
@@ -40,8 +40,8 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url')
-        .ilike('full_name', `%${searchTerm}%`)
+        .select('id, full_name, avatar_url, email')
+        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
         .limit(10);
 
       if (error) throw error;
@@ -67,7 +67,7 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
         <DialogHeader>
           <DialogTitle>Adicionar Membro</DialogTitle>
           <DialogDescription>
-            Busque por nome para convidar usuários ao grupo
+            Busque por nome ou email para convidar usuários ao grupo
           </DialogDescription>
         </DialogHeader>
         
@@ -78,7 +78,7 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
-                placeholder="Digite o nome..."
+                placeholder="Digite o nome ou email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -119,6 +119,7 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
                       </Avatar>
                       <div>
                         <p className="font-medium text-foreground">{user.full_name}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
                         {isAlreadyMember && (
                           <p className="text-xs text-muted-foreground">Já é membro</p>
                         )}

@@ -58,12 +58,17 @@ export const useGroupInvites = () => {
 
   const respondToInvite = useMutation({
     mutationFn: async ({ inviteId, status }: { inviteId: string; status: 'approved' | 'rejected' }) => {
+      console.log('Responding to invite:', { inviteId, status });
+      
       const { error } = await supabase
         .from('group_invites')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', inviteId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error responding to invite:', error);
+        throw error;
+      }
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['group-invites'] });
@@ -102,15 +107,23 @@ export const useSendGroupInvite = () => {
     mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      console.log('Sending invite:', { groupId, userId, invitedBy: user.id });
+
+      const { data, error } = await supabase
         .from('group_invites')
         .insert({
           group_id: groupId,
           invited_user_id: userId,
           invited_by: user.id,
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending invite:', error);
+        throw error;
+      }
+
+      console.log('Invite created:', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-members'] });
