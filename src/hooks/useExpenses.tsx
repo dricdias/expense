@@ -101,10 +101,74 @@ export const useExpenses = (groupId: string | null) => {
     },
   });
 
+  const deleteExpense = useMutation({
+    mutationFn: async (expenseId: string) => {
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', expenseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['settlements'] });
+      toast({
+        title: "Despesa excluída!",
+        description: "A despesa foi removida com sucesso",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateExpense = useMutation({
+    mutationFn: async ({ 
+      expenseId, 
+      description, 
+      amount 
+    }: { 
+      expenseId: string; 
+      description: string; 
+      amount: number; 
+    }) => {
+      const { error } = await supabase
+        .from('expenses')
+        .update({ description, amount })
+        .eq('id', expenseId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['settlements'] });
+      toast({
+        title: "Despesa atualizada!",
+        description: "A despesa foi atualizada com sucesso",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     expenses,
     isLoading,
     createExpense: createExpense.mutate,
     isCreating: createExpense.isPending,
+    deleteExpense: deleteExpense.mutate,
+    isDeleting: deleteExpense.isPending,
+    updateExpense: updateExpense.mutate,
+    isUpdating: updateExpense.isPending,
   };
 };
