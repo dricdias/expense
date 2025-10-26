@@ -69,16 +69,16 @@ const Groups = () => {
           </Card>
 
           <Card className={`p-6 shadow-smooth hover:shadow-lg transition-all duration-300 ${
-            userBalance >= 0 ? 'bg-accent/5 border-accent/20' : 'bg-destructive/5 border-destructive/20'
+            userBalance >= 0 ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'
           }`}>
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                userBalance >= 0 ? 'bg-accent/10' : 'bg-destructive/10'
+                userBalance >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'
               }`}>
                 {userBalance >= 0 ? (
-                  <TrendingUp className="w-6 h-6 text-accent" />
+                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
                 ) : (
-                  <TrendingDown className="w-6 h-6 text-destructive" />
+                  <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
                 )}
               </div>
               <div>
@@ -89,7 +89,7 @@ const Groups = () => {
                   <Skeleton className="h-8 w-24" />
                 ) : (
                   <p className={`text-2xl font-bold ${
-                    userBalance >= 0 ? 'text-accent' : 'text-destructive'
+                    userBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                     ${Math.abs(userBalance).toFixed(2)}
                   </p>
