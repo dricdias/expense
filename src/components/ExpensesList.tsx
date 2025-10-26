@@ -5,11 +5,11 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -75,6 +75,7 @@ interface ExpensesListProps {
 export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps) => {
   const { user } = useAuth();
   const { deleteExpense, updateExpense } = useExpenses(groupId);
+  const queryClient = useQueryClient();
   const [deleteExpenseId, setDeleteExpenseId] = useState<string | null>(null);
   const [editExpense, setEditExpense] = useState<{ id: string; description: string; amount: number } | null>(null);
   const [editDescription, setEditDescription] = useState("");
@@ -104,6 +105,31 @@ export const ExpensesList = ({ expenses, isLoading, groupId }: ExpensesListProps
     },
     enabled: !!groupId,
   });
+
+  // Set up realtime subscription for approved settlements
+  useEffect(() => {
+    if (!groupId) return;
+
+    const channel = supabase
+      .channel(`approved-settlements-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'settlements',
+          filter: `group_id=eq.${groupId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['approved-settlements', groupId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, queryClient]);
 
   const handleDeleteConfirm = () => {
     if (deleteExpenseId) {

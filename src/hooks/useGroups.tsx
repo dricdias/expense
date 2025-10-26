@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 export const useGroups = () => {
   const { user } = useAuth();
@@ -58,6 +59,52 @@ export const useGroups = () => {
     },
     enabled: !!user,
   });
+
+  // Set up realtime subscription for groups
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('groups-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'groups',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['groups'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_members',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['groups'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expenses',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['groups'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   const createGroup = useMutation({
     mutationFn: async ({ name, description, members }: { name: string; description?: string; members: string[] }) => {

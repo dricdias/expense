@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 interface Settlement {
   from: string;
@@ -15,7 +16,7 @@ export const useSettlements = (groupId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: settlements, isLoading } = useQuery({
+  const { data: settlements = [], isLoading } = useQuery<Settlement[]>({
     queryKey: ['settlements', groupId],
     queryFn: async (): Promise<Settlement[]> => {
       if (!groupId) return [];
@@ -102,6 +103,43 @@ export const useSettlements = (groupId: string | null) => {
     },
     enabled: !!groupId && !!user,
   });
+
+  // Set up realtime subscription for settlements
+  useEffect(() => {
+    if (!groupId) return;
+
+    const channel = supabase
+      .channel(`settlements-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'settlements',
+          filter: `group_id=eq.${groupId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });
+          queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expense_splits',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, queryClient]);
 
   const markSettlementsAsPaid = useMutation({
     mutationFn: async (settlementsList: Settlement[]) => {

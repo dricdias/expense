@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 export const useExpenses = (groupId: string | null) => {
   const { user } = useAuth();
@@ -31,6 +32,42 @@ export const useExpenses = (groupId: string | null) => {
     },
     enabled: !!groupId && !!user,
   });
+
+  // Set up realtime subscription for expenses
+  useEffect(() => {
+    if (!groupId) return;
+
+    const channel = supabase
+      .channel(`expenses-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expenses',
+          filter: `group_id=eq.${groupId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expense_splits',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['expenses', groupId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, queryClient]);
 
   const createExpense = useMutation({
     mutationFn: async ({ 
