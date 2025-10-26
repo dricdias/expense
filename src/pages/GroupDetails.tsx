@@ -67,47 +67,35 @@ const GroupDetails = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate('/')}
-              className="flex-shrink-0"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              {!group ? (
-                <Skeleton className="h-8 w-48" />
-              ) : (
-                <>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group.name}</h1>
-                  <p className="text-sm text-muted-foreground">
-                    {members?.length || 0} {members?.length === 1 ? 'membro' : 'membros'}
-                  </p>
-                </>
-              )}
-            </div>
+        <div className="flex items-center gap-3 sm:gap-4 mb-6">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate('/')}
+            className="flex-shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="min-w-0 flex-1">
+            {!group ? (
+              <Skeleton className="h-8 w-48" />
+            ) : (
+              <>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group.name}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {members?.length || 0} {members?.length === 1 ? 'membro' : 'membros'}
+                </p>
+              </>
+            )}
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button 
-              onClick={() => setShowAddExpense(true)}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 flex-1 sm:flex-initial"
-            >
-              <Plus className="w-5 h-5 sm:mr-2" />
-              <span className="hidden sm:inline">Nova Despesa</span>
-            </Button>
-            <Button
-              onClick={() => setShowEditGroup(true)}
-              size="lg"
-              variant="outline"
-              className="flex-shrink-0"
-            >
-              <Settings className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowEditGroup(true)}
+            size="icon"
+            variant="outline"
+            className="flex-shrink-0"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
         </div>
       </div>
 
@@ -187,6 +175,15 @@ const GroupDetails = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setShowAddExpense(true)}
+        size="lg"
+        className="fixed bottom-6 right-6 h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg bg-primary hover:bg-primary/90 z-50"
+      >
+        <Plus className="w-6 h-6 sm:w-7 sm:h-7" />
+      </Button>
 
       {/* Dialogs */}
       <AddExpenseDialog

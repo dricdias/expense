@@ -46,15 +46,15 @@ const Index = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Meus Grupos</h1>
-            <p className="text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="w-full sm:w-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Meus Grupos</h1>
+            <p className="text-base sm:text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
           </div>
           <Button 
             onClick={() => setShowCreateGroup(true)}
             size="lg"
-            className="bg-primary hover:bg-primary/90"
+            className="bg-primary hover:bg-primary/90 w-full sm:w-auto flex-shrink-0"
           >
             <Plus className="w-5 h-5 mr-2" />
             Novo Grupo
