@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, PieChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import logo from "@/assets/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -39,7 +38,9 @@ export const Navbar = () => {
                 className="flex items-center gap-3 cursor-pointer"
                 onClick={() => navigate("/")}
               >
-                <img src={logo} alt="Agility Expenses" className="w-10 h-10 rounded-xl" />
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <PieChart className="w-6 h-6" />
+                </div>
                 <div>
                   <h1 className="text-2xl font-bold">Agility Expenses</h1>
                   <p className="text-sm text-primary-foreground/80">Split expenses easily</p>
