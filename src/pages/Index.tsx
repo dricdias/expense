@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Users, Receipt, TrendingUp, ArrowRight } from "lucide-react";
+import { Users, Receipt, TrendingUp, TrendingDown, ArrowRight, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { PendingSettlementsNotification } from "@/components/PendingSettlementsNotification";
+import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroups } from "@/hooks/useGroups";
+import { useAllGroupsBalance } from "@/hooks/useGroupBalance";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { groups, isLoading: groupsLoading } = useGroups();
+  const { data: balanceData, isLoading: balanceLoading } = useAllGroupsBalance();
   const navigate = useNavigate();
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -34,19 +38,27 @@ const Index = () => {
   }
 
   const totalGroups = groups?.length || 0;
-  const totalExpenses = groups?.reduce((sum, group: any) => {
-    const groupTotal = group.expenses?.reduce((expSum: number, exp: any) => expSum + Number(exp.amount), 0) || 0;
-    return sum + groupTotal;
-  }, 0) || 0;
+  const totalUnsettled = balanceData?.totalUnsettled || 0;
+  const userBalance = balanceData?.totalBalance || 0;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Bem-vindo!</h1>
-          <p className="text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-foreground mb-2">Meus Grupos</h1>
+            <p className="text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
+          </div>
+          <Button 
+            onClick={() => setShowCreateGroup(true)}
+            size="lg"
+            className="bg-primary hover:bg-primary/90"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Novo Grupo
+          </Button>
         </div>
 
         {/* Pending Settlements */}
@@ -59,7 +71,7 @@ const Index = () => {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Active Groups</p>
+                <p className="text-sm text-muted-foreground">Grupos Ativos</p>
                 {groupsLoading ? (
                   <Skeleton className="h-8 w-12" />
                 ) : (
@@ -75,41 +87,51 @@ const Index = () => {
                 <Receipt className="w-6 h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Expenses</p>
-                {groupsLoading ? (
+                <p className="text-sm text-muted-foreground">Despesas Pendentes</p>
+                {balanceLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
-                  <p className="text-2xl font-bold text-foreground">${totalExpenses.toFixed(2)}</p>
+                  <p className="text-2xl font-bold text-foreground">${totalUnsettled.toFixed(2)}</p>
                 )}
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 bg-card shadow-smooth hover:shadow-lg transition-all duration-300 border-border">
+          <Card className={`p-6 shadow-smooth hover:shadow-lg transition-all duration-300 ${
+            userBalance >= 0 ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'
+          }`}>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-accent" />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                userBalance >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'
+              }`}>
+                {userBalance >= 0 ? (
+                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                ) : (
+                  <TrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
+                )}
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">To Receive</p>
-                <p className="text-2xl font-bold text-accent">$0.00</p>
+                <p className="text-sm text-muted-foreground">
+                  {userBalance >= 0 ? 'A Receber' : 'A Pagar'}
+                </p>
+                {balanceLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className={`text-2xl font-bold ${
+                    userBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
+                    ${Math.abs(userBalance).toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Recent Groups */}
+        {/* All Groups */}
         <div className="mt-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Grupos Recentes</h2>
-            <Button variant="outline" onClick={() => navigate('/groups')}>
-              Ver Todos
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-
           {groupsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-4">
               {[1, 2, 3].map((i) => (
                 <Card key={i} className="p-6 bg-card border-border">
                   <Skeleton className="h-20 w-full" />
@@ -117,10 +139,10 @@ const Index = () => {
               ))}
             </div>
           ) : groups && groups.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {groups.slice(0, 3).map((group: any) => {
-                const memberCount = group.group_members?.length || 0;
-                const totalAmount = group.expenses?.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0) || 0;
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {groups.map((group: any) => {
+                const memberCount = group.group_members?.[0]?.count || 0;
+                const unsettledTotal = group.unsettledTotal || 0;
 
                 return (
                   <Card
@@ -128,19 +150,25 @@ const Index = () => {
                     className="p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300 cursor-pointer group"
                     onClick={() => navigate(`/groups/${group.id}`)}
                   >
-                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                      {group.name}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{memberCount}</span>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {group.name}
+                        </h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{memberCount} {memberCount === 1 ? 'membro' : 'membros'}</span>
+                          </div>
+                        </div>
                       </div>
+                      <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </div>
+
                     <div className="pt-4 border-t border-border">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Total</span>
-                        <span className="text-lg font-bold text-foreground">${totalAmount.toFixed(2)}</span>
+                        <span className="text-sm text-muted-foreground">Despesas Pendentes</span>
+                        <span className="text-lg font-bold text-foreground">${unsettledTotal.toFixed(2)}</span>
                       </div>
                     </div>
                   </Card>
@@ -158,10 +186,11 @@ const Index = () => {
                     Nenhum grupo ainda
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Crie seu primeiro grupo para começar
+                    Crie seu primeiro grupo para começar a dividir despesas
                   </p>
-                  <Button onClick={() => navigate('/groups')}>
-                    Começar
+                  <Button onClick={() => setShowCreateGroup(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Grupo
                   </Button>
                 </div>
               </div>
@@ -169,6 +198,8 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      <CreateGroupDialog open={showCreateGroup} onOpenChange={setShowCreateGroup} />
     </div>
   );
 };

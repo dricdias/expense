@@ -1,19 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Receipt, Home, Users, LogOut } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Receipt, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Navbar = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { signOut } = useAuth();
-
-  const isActive = (path: string) => {
-    if (path === "/groups") {
-      return location.pathname === "/groups" || location.pathname.startsWith("/groups/");
-    }
-    return location.pathname === path;
-  };
 
   return (
     <header className="bg-gradient-primary text-primary-foreground shadow-lg">
@@ -32,29 +24,6 @@ export const Navbar = () => {
                 <p className="text-sm text-primary-foreground/80">Split expenses easily</p>
               </div>
             </div>
-
-            <nav className="hidden md:flex items-center gap-2">
-              <Button
-                variant="ghost"
-                className={`text-primary-foreground hover:bg-white/10 ${
-                  isActive("/") ? "bg-white/20" : ""
-                }`}
-                onClick={() => navigate("/")}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Início
-              </Button>
-              <Button
-                variant="ghost"
-                className={`text-primary-foreground hover:bg-white/10 ${
-                  isActive("/groups") ? "bg-white/20" : ""
-                }`}
-                onClick={() => navigate("/groups")}
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Grupos
-              </Button>
-            </nav>
           </div>
 
           <Button
