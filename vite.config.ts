@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'RachaDespesas',
-        short_name: 'RachaDespesas',
+        name: 'Agility Expenses',
+        short_name: 'Agility Expenses',
         description: 'Sistema inteligente de divisão de despesas entre amigos',
         theme_color: '#2dd4bf',
         background_color: '#f0f6f8',
