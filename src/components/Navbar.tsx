@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Receipt, LogOut, User, Settings } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import logo from "@/assets/logo.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -38,11 +39,9 @@ export const Navbar = () => {
                 className="flex items-center gap-3 cursor-pointer"
                 onClick={() => navigate("/")}
               >
-                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                  <Receipt className="w-6 h-6" />
-                </div>
+                <img src={logo} alt="Agility Expenses" className="w-10 h-10 rounded-xl" />
                 <div>
-                  <h1 className="text-2xl font-bold">RachaDespesas</h1>
+                  <h1 className="text-2xl font-bold">Agility Expenses</h1>
                   <p className="text-sm text-primary-foreground/80">Split expenses easily</p>
                 </div>
               </div>
