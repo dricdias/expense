@@ -35,15 +35,14 @@ export const useSettlements = (groupId: string | null) => {
           paid_by,
           amount,
           profiles:paid_by(id, full_name),
-          expense_splits!inner(
+          expense_splits(
             user_id,
             share_amount,
             paid,
             profiles:user_id(id, full_name)
           )
         `)
-        .eq('group_id', groupId)
-        .eq('expense_splits.paid', false);
+        .eq('group_id', groupId);
 
       console.log('Expenses query result:', { data: expenses, error });
       
@@ -61,8 +60,11 @@ export const useSettlements = (groupId: string | null) => {
         }
         balances[paidBy.id].amount += Number(expense.amount);
 
-        // Each person owes their share
+        // Each person owes their share (only unpaid splits)
         expense.expense_splits?.forEach((split: any) => {
+          // Skip splits that are already paid
+          if (split.paid) return;
+          
           const userId = split.profiles.id;
           if (!balances[userId]) {
             balances[userId] = { amount: 0, name: split.profiles.full_name };
