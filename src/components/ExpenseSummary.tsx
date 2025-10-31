@@ -54,10 +54,6 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
     );
   }
 
-  // Separate pending and approved settlements
-  const pendingSettlements = settlements.filter(s => !s.status || s.status === 'pending');
-  const approvedSettlements = settlements.filter(s => s.status === 'approved');
-
   return (
     <div className="space-y-4">
       {settlements.length === 0 ? (
@@ -78,67 +74,7 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
         </Card>
       ) : (
         <>
-          {/* Approved Settlements */}
-          {approvedSettlements.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Acertos Aprovados</h3>
-              {approvedSettlements.map((settlement, index) => (
-                <Card
-                  key={settlement.id || index}
-                  className="p-4 sm:p-6 bg-card border-accent/20 shadow-smooth"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* From User */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle2 className="w-5 h-5 text-accent" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{settlement.from}</p>
-                        <p className="text-sm text-muted-foreground">pagou</p>
-                      </div>
-                    </div>
-
-                    {/* Arrow */}
-                    <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto sm:mx-4 rotate-90 sm:rotate-0 flex-shrink-0" />
-
-                    {/* To User */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-accent">
-                          {settlement.to[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{settlement.to}</p>
-                        <p className="text-sm text-muted-foreground">recebeu</p>
-                      </div>
-                    </div>
-
-                    {/* Amount */}
-                    <div className="text-center sm:text-right sm:ml-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-border">
-                      <p className="text-2xl sm:text-xl font-bold text-accent">
-                        ${settlement.amount.toFixed(2)}
-                      </p>
-                      {settlement.settled_at && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(settlement.settled_at).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Pending Settlements */}
-          {pendingSettlements.length > 0 && (
-            <div className="space-y-4">
-              {approvedSettlements.length > 0 && (
-                <h3 className="text-lg font-semibold text-foreground mt-6">Acertos Pendentes</h3>
-              )}
-              {pendingSettlements.map((settlement, index) => (
+          {settlements.map((settlement, index) => (
                 <Card
                   key={index}
                   className="p-4 sm:p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
@@ -181,20 +117,18 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
                     </div>
                   </div>
                 </Card>
-              ))}
+            ))}
 
-              {userHasDebts && (
-                <Button 
-                  className="w-full mt-6 bg-accent hover:bg-accent/90" 
-                  size="lg"
-                  onClick={handleMarkAsPaid}
-                  disabled={isMarking}
-                >
-                  <CheckCircle2 className="w-5 h-5 mr-2" />
-                  {isMarking ? "Processando..." : "Confirmar que Paguei"}
-                </Button>
-              )}
-            </div>
+          {userHasDebts && (
+            <Button 
+              className="w-full mt-6 bg-accent hover:bg-accent/90" 
+              size="lg"
+              onClick={handleMarkAsPaid}
+              disabled={isMarking}
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              {isMarking ? "Processando..." : "Confirmar que Paguei"}
+            </Button>
           )}
         </>
       )}

@@ -24,36 +24,6 @@ export const useSettlements = (groupId: string | null) => {
     queryFn: async (): Promise<Settlement[]> => {
       if (!groupId) return [];
 
-      // Get approved settlements from the database
-      const { data: approvedSettlements, error: settlementsError } = await supabase
-        .from('settlements')
-        .select(`
-          id,
-          from_user,
-          to_user,
-          amount,
-          status,
-          settled_at,
-          from_profile:profiles!from_user(full_name),
-          to_profile:profiles!to_user(full_name)
-        `)
-        .eq('group_id', groupId)
-        .eq('status', 'approved')
-        .order('settled_at', { ascending: false });
-
-      if (settlementsError) throw settlementsError;
-
-      const approvedResults: Settlement[] = (approvedSettlements || []).map((s: any) => ({
-        id: s.id,
-        from: s.from_profile?.full_name || 'Usuário',
-        to: s.to_profile?.full_name || 'Usuário',
-        amount: Number(s.amount),
-        fromId: s.from_user,
-        toId: s.to_user,
-        status: s.status,
-        settled_at: s.settled_at,
-      }));
-
       // Get all expenses and their splits for the group (only unpaid ones)
       const { data: expenses, error } = await supabase
         .from('expenses')
@@ -132,8 +102,7 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
-      // Combine approved settlements and pending ones
-      return [...approvedResults, ...pendingResults];
+      return pendingResults;
     },
     enabled: !!groupId && !!user,
   });
