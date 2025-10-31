@@ -22,6 +22,9 @@ export const useSettlements = (groupId: string | null) => {
   const { data: settlements = [], isLoading } = useQuery<Settlement[]>({
     queryKey: ['settlements', groupId],
     queryFn: async (): Promise<Settlement[]> => {
+      console.log('=== useSettlements query starting ===');
+      console.log('groupId:', groupId);
+      
       if (!groupId) return [];
 
       // Get all expenses and their splits for the group (only unpaid ones)
@@ -42,6 +45,8 @@ export const useSettlements = (groupId: string | null) => {
         .eq('group_id', groupId)
         .eq('expense_splits.paid', false);
 
+      console.log('Expenses query result:', { data: expenses, error });
+      
       if (error) throw error;
 
       // Calculate balances: positive means they should receive, negative means they owe
@@ -102,6 +107,7 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
+      console.log('Final settlements calculated:', pendingResults);
       return pendingResults;
     },
     enabled: !!groupId && !!user,
