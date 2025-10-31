@@ -10,6 +10,9 @@ interface Settlement {
   amount: number;
   fromId: string;
   toId: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  settled_at?: string;
+  id?: string;
 }
 
 export const useSettlements = (groupId: string | null) => {
@@ -20,6 +23,36 @@ export const useSettlements = (groupId: string | null) => {
     queryKey: ['settlements', groupId],
     queryFn: async (): Promise<Settlement[]> => {
       if (!groupId) return [];
+
+      // Get approved settlements from the database
+      const { data: approvedSettlements, error: settlementsError } = await supabase
+        .from('settlements')
+        .select(`
+          id,
+          from_user,
+          to_user,
+          amount,
+          status,
+          settled_at,
+          from_profile:profiles!from_user(full_name),
+          to_profile:profiles!to_user(full_name)
+        `)
+        .eq('group_id', groupId)
+        .eq('status', 'approved')
+        .order('settled_at', { ascending: false });
+
+      if (settlementsError) throw settlementsError;
+
+      const approvedResults: Settlement[] = (approvedSettlements || []).map((s: any) => ({
+        id: s.id,
+        from: s.from_profile?.full_name || 'Usuário',
+        to: s.to_profile?.full_name || 'Usuário',
+        amount: Number(s.amount),
+        fromId: s.from_user,
+        toId: s.to_user,
+        status: s.status,
+        settled_at: s.settled_at,
+      }));
 
       // Get all expenses and their splits for the group (only unpaid ones)
       const { data: expenses, error } = await supabase
@@ -74,7 +107,7 @@ export const useSettlements = (groupId: string | null) => {
         .map(([id, data]) => ({ id, name: data.name, amount: data.amount }))
         .sort((a, b) => b.amount - a.amount);
 
-      const result: Settlement[] = [];
+      const pendingResults: Settlement[] = [];
 
       let i = 0, j = 0;
       while (i < debtors.length && j < creditors.length) {
@@ -83,7 +116,7 @@ export const useSettlements = (groupId: string | null) => {
         const settled = Math.min(debt, credit);
 
         if (settled > 0.01) {
-          result.push({
+          pendingResults.push({
             from: debtors[i].name,
             to: creditors[j].name,
             amount: settled,
@@ -99,7 +132,8 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
-      return result;
+      // Combine approved settlements and pending ones
+      return [...approvedResults, ...pendingResults];
     },
     enabled: !!groupId && !!user,
   });
