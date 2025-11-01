@@ -51,8 +51,19 @@ export const useSettlements = (groupId: string | null) => {
       // Calculate balances: positive means they should receive, negative means they owe
       const balances: { [userId: string]: { amount: number; name: string } } = {};
 
+      console.log('Processing expenses...');
       expenses?.forEach((expense: any) => {
         const paidBy = expense.profiles;
+        console.log('Expense:', {
+          id: expense.id,
+          amount: expense.amount,
+          paidBy: paidBy.full_name,
+          splits: expense.expense_splits?.map((s: any) => ({
+            user: s.profiles.full_name,
+            amount: s.share_amount,
+            paid: s.paid
+          }))
+        });
         
         // Person who paid gets credit
         if (!balances[paidBy.id]) {
@@ -63,7 +74,12 @@ export const useSettlements = (groupId: string | null) => {
         // Each person owes their share (only unpaid splits)
         expense.expense_splits?.forEach((split: any) => {
           // Skip splits that are already paid
-          if (split.paid) return;
+          if (split.paid) {
+            console.log(`Skipping paid split for ${split.profiles.full_name}`);
+            return;
+          }
+          
+          console.log(`Processing unpaid split: ${split.profiles.full_name} owes ${split.share_amount}`);
           
           const userId = split.profiles.id;
           if (!balances[userId]) {
@@ -72,6 +88,8 @@ export const useSettlements = (groupId: string | null) => {
           balances[userId].amount -= Number(split.share_amount);
         });
       });
+
+      console.log('Final balances:', balances);
 
       // Calculate settlements using greedy algorithm
       const debtors = Object.entries(balances)
