@@ -19,10 +19,16 @@ export const useSettlements = (groupId: string | null) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  console.log('=== useSettlements hook called ===', { groupId, user: user?.id });
+
   const { data: settlements = [], isLoading } = useQuery<Settlement[]>({
     queryKey: ['settlements', groupId],
     queryFn: async (): Promise<Settlement[]> => {
-      if (!groupId) return [];
+      console.log('=== useSettlements queryFn starting ===', { groupId });
+      if (!groupId) {
+        console.log('No groupId, returning empty');
+        return [];
+      }
 
       // Get all expenses and their splits for the group (only unpaid ones)
       const { data: expenses, error } = await supabase
