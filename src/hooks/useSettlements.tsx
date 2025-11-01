@@ -55,10 +55,10 @@ export const useSettlements = (groupId: string | null) => {
         }
         balances[paidBy.id].amount += Number(expense.amount);
 
-        // Each person owes their share (only unpaid splits)
+        // Each person owes their share (only unpaid splits and not the person who paid)
         expense.expense_splits?.forEach((split: any) => {
-          // Skip splits that are already paid
-          if (split.paid) return;
+          // Skip splits that are already paid or from the person who paid
+          if (split.paid || split.profiles.id === paidBy.id) return;
           
           const userId = split.profiles.id;
           if (!balances[userId]) {
@@ -67,8 +67,6 @@ export const useSettlements = (groupId: string | null) => {
           balances[userId].amount -= Number(split.share_amount);
         });
       });
-
-      console.log('Final balances:', balances);
 
       // Calculate settlements using greedy algorithm
       const debtors = Object.entries(balances)
@@ -80,9 +78,6 @@ export const useSettlements = (groupId: string | null) => {
         .filter(([_, data]) => data.amount > 0)
         .map(([id, data]) => ({ id, name: data.name, amount: data.amount }))
         .sort((a, b) => b.amount - a.amount);
-
-      console.log('Debtors:', debtors);
-      console.log('Creditors:', creditors);
 
       const pendingResults: Settlement[] = [];
 
@@ -109,7 +104,6 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
-      console.log('Final settlements:', pendingResults);
       return pendingResults;
     },
     enabled: !!groupId && !!user,
