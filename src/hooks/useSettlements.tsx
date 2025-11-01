@@ -46,8 +46,21 @@ export const useSettlements = (groupId: string | null) => {
           )
         `)
         .eq('group_id', groupId);
+
+      console.log('Expenses query completed:', { 
+        hasError: !!error, 
+        expensesCount: expenses?.length || 0,
+        expenses: expenses?.map(e => ({
+          id: e.id,
+          amount: e.amount,
+          splits: e.expense_splits?.length
+        }))
+      });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Query error:', error);
+        throw error;
+      }
 
       // Calculate balances: positive means they should receive, negative means they owe
       const balances: { [userId: string]: { amount: number; name: string } } = {};
@@ -74,6 +87,8 @@ export const useSettlements = (groupId: string | null) => {
         });
       });
 
+      console.log('Balances calculated:', balances);
+
       // Calculate settlements using greedy algorithm
       const debtors = Object.entries(balances)
         .filter(([_, data]) => data.amount < 0)
@@ -84,6 +99,8 @@ export const useSettlements = (groupId: string | null) => {
         .filter(([_, data]) => data.amount > 0)
         .map(([id, data]) => ({ id, name: data.name, amount: data.amount }))
         .sort((a, b) => b.amount - a.amount);
+
+      console.log('Debtors and Creditors:', { debtors, creditors });
 
       const pendingResults: Settlement[] = [];
 
@@ -110,6 +127,7 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
+      console.log('Settlements result:', pendingResults);
       return pendingResults;
     },
     enabled: !!groupId && !!user,
