@@ -68,6 +68,8 @@ export const useSettlements = (groupId: string | null) => {
         });
       });
 
+      console.log('Final balances:', balances);
+
       // Calculate settlements using greedy algorithm
       const debtors = Object.entries(balances)
         .filter(([_, data]) => data.amount < 0)
@@ -78,6 +80,9 @@ export const useSettlements = (groupId: string | null) => {
         .filter(([_, data]) => data.amount > 0)
         .map(([id, data]) => ({ id, name: data.name, amount: data.amount }))
         .sort((a, b) => b.amount - a.amount);
+
+      console.log('Debtors:', debtors);
+      console.log('Creditors:', creditors);
 
       const pendingResults: Settlement[] = [];
 
@@ -104,6 +109,7 @@ export const useSettlements = (groupId: string | null) => {
         if (creditors[j].amount < 0.01) j++;
       }
 
+      console.log('Final settlements:', pendingResults);
       return pendingResults;
     },
     enabled: !!groupId && !!user,
