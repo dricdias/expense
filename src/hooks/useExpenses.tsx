@@ -120,9 +120,16 @@ export const useExpenses = (groupId: string | null) => {
 
       return expense;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['settlements'] });
+    onSuccess: (_data, variables) => {
+      // Precisamos garantir que as queries específicas do grupo sejam invalidadas
+      const gid = (variables as { groupId: string }).groupId;
+      if (gid) {
+        queryClient.invalidateQueries({ queryKey: ['expenses', gid] });
+        queryClient.invalidateQueries({ queryKey: ['settlements', gid] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['expenses'] });
+        queryClient.invalidateQueries({ queryKey: ['settlements'] });
+      }
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       toast({
         title: "Expense added!",

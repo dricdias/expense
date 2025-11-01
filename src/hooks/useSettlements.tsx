@@ -30,13 +30,29 @@ export const useSettlements = (groupId: string | null) => {
         return [];
       }
 
-      // Get all expenses and their splits for the group (only unpaid ones)
+      // Get the last approved settlement date for this group
+      const { data: lastSettlement } = await supabase
+        .from('settlements')
+        .select('settled_at')
+        .eq('group_id', groupId)
+        .eq('status', 'approved')
+        .not('settled_at', 'is', null)
+        .order('settled_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const lastSettlementDate = lastSettlement?.settled_at || '1970-01-01';
+
+      console.log('Last settlement date:', lastSettlementDate);
+
+      // Get all expenses and their splits for the group created after the last settlement (only unpaid ones)
       const { data: expenses, error } = await supabase
         .from('expenses')
         .select(`
           id,
           paid_by,
           amount,
+          created_at,
           profiles:paid_by(id, full_name),
           expense_splits(
             user_id,
@@ -45,7 +61,8 @@ export const useSettlements = (groupId: string | null) => {
             profiles:user_id(id, full_name)
           )
         `)
-        .eq('group_id', groupId);
+        .eq('group_id', groupId)
+        .gt('created_at', lastSettlementDate);
 
       console.log('Expenses query completed:', { 
         hasError: !!error, 
@@ -67,24 +84,33 @@ export const useSettlements = (groupId: string | null) => {
 
       expenses?.forEach((expense: any) => {
         const paidBy = expense.profiles;
-        
-        // Person who paid gets credit
+
+        // Creditar ao pagador apenas o total que os outros devem (splits não pagos)
+        let creditedAmount = 0;
+
+        expense.expense_splits?.forEach((split: any) => {
+          // Ignorar splits já pagos
+          if (split.paid) return;
+
+          const splitUserId = split.profiles.id;
+          const splitUserName = split.profiles.full_name;
+
+          // Se o usuário do split não for o pagador, ele deve sua parte
+          if (splitUserId !== paidBy.id) {
+            creditedAmount += Number(split.share_amount);
+
+            if (!balances[splitUserId]) {
+              balances[splitUserId] = { amount: 0, name: splitUserName };
+            }
+            balances[splitUserId].amount -= Number(split.share_amount);
+          }
+        });
+
+        // Pagador recebe crédito igual ao que os outros devem
         if (!balances[paidBy.id]) {
           balances[paidBy.id] = { amount: 0, name: paidBy.full_name };
         }
-        balances[paidBy.id].amount += Number(expense.amount);
-
-        // Each person owes their share (only unpaid splits and not the person who paid)
-        expense.expense_splits?.forEach((split: any) => {
-          // Skip splits that are already paid or from the person who paid
-          if (split.paid || split.profiles.id === paidBy.id) return;
-          
-          const userId = split.profiles.id;
-          if (!balances[userId]) {
-            balances[userId] = { amount: 0, name: split.profiles.full_name };
-          }
-          balances[userId].amount -= Number(split.share_amount);
-        });
+        balances[paidBy.id].amount += creditedAmount;
       });
 
       console.log('Balances calculated:', balances);
@@ -133,7 +159,7 @@ export const useSettlements = (groupId: string | null) => {
     enabled: !!groupId && !!user,
   });
 
-  // Set up realtime subscription for settlements
+  // Set up realtime subscription for settlements and expenses
   useEffect(() => {
     if (!groupId) return;
 
@@ -158,6 +184,18 @@ export const useSettlements = (groupId: string | null) => {
           event: '*',
           schema: 'public',
           table: 'expense_splits',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'expenses',
+          filter: `group_id=eq.${groupId}`,
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['settlements', groupId] });

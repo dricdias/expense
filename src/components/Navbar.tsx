@@ -28,6 +28,8 @@ export const Navbar = () => {
     .toUpperCase()
     .slice(0, 2);
 
+  
+
   return (
     <>
       <header className="bg-gradient-primary text-primary-foreground shadow-lg">

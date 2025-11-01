@@ -187,7 +187,8 @@ const GroupDetails = () => {
       <Button
         onClick={() => setShowAddExpense(true)}
         size="lg"
-        className="fixed bottom-6 right-6 h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg bg-primary hover:bg-primary/90 z-50"
+        aria-label="Adicionar despesa"
+        className="fixed right-4 bottom-24 sm:right-6 md:bottom-6 h-14 w-14 sm:h-16 sm:w-16 rounded-full shadow-lg bg-primary hover:bg-primary/90 z-50"
       >
         <Plus className="w-6 h-6 sm:w-7 sm:h-7" />
       </Button>
