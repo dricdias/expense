@@ -37,7 +37,7 @@ All colors MUST be HSL.
     --ring: 170 75% 45%;
 
     --radius: 0.75rem;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(170 75% 45%) 0%, hsl(195 85% 55%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.9), hsl(0 0% 100% / 0.7));
     --shadow-smooth: 0 4px 20px -2px hsl(210 40% 20% / 0.08);
@@ -88,7 +88,7 @@ All colors MUST be HSL.
     --border: 210 20% 20%;
     --input: 210 20% 18%;
     --ring: 170 75% 50%;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(170 75% 50%) 0%, hsl(195 85% 60%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(210 25% 14%), hsl(210 25% 10%));
     --shadow-smooth: 0 4px 20px -2px hsl(0 0% 0% / 0.3);
@@ -111,5 +111,44 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ---break---
+*/
+
+@theme inline {
+  @keyframes scaleToggle {
+  0% {
+    scale: 1 1;
+    }
+  50% {
+    scale: 1.1 1;
+    }
+  100% {
+    scale: 1 1;
+    }
+  }
+  @keyframes scaleToggle2 {
+  0% {
+    scale: 1 1;
+    }
+  50% {
+    scale: 1.2 1;
+    }
+  100% {
+    scale: 1 1;
+    }
+  }
+  @keyframes scaleToggle3 {
+  0% {
+    scale: 1 1;
+    }
+  50% {
+    scale: 1.1 1;
+    }
+  100% {
+    scale: 1 1;
+    }
   }
 }
