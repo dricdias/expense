@@ -17,7 +17,7 @@ const Index = () => {
   const { groups, isLoading: groupsLoading } = useGroups();
   const { data: balanceData, isLoading: balanceLoading } = useAllGroupsBalance();
   const navigate = useNavigate();
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [createType, setCreateType] = useState<"split" | "reimbursement" | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,17 +49,28 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="w-full sm:w-auto">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Meus Grupos</h1>
-            <p className="text-base sm:text-lg text-muted-foreground">Gerencie suas despesas compartilhadas facilmente</p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Dashboard</h1>
+            <p className="text-base sm:text-lg text-muted-foreground">Visão geral das suas despesas e grupos</p>
           </div>
-          <Button 
-            onClick={() => setShowCreateGroup(true)}
-            size="lg"
-            className="bg-primary hover:bg-primary/90 w-full sm:w-auto flex-shrink-0"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Novo Grupo
-          </Button>
+          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-3">
+            <Button 
+              onClick={() => setCreateType("split")}
+              size="lg"
+              className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Novo grupo divisão de despesas
+            </Button>
+            <Button 
+              onClick={() => setCreateType("reimbursement")}
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Novo grupo de reembolso
+            </Button>
+          </div>
         </div>
 
         {/* Pending Settlements */}
@@ -91,7 +102,7 @@ const Index = () => {
                 <Receipt className="w-6 h-6 text-secondary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Despesas Pendentes</p>
+                <p className="text-sm text-muted-foreground">Total Pendente</p>
                 {balanceLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
@@ -137,18 +148,22 @@ const Index = () => {
           <Card className="p-6 bg-card border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Grupos</h3>
-                <p className="text-sm text-muted-foreground">Veja e gerencie todos os seus grupos</p>
+                <h3 className="text-lg font-semibold text-foreground">Atalhos</h3>
+                <p className="text-sm text-muted-foreground">Acesse rapidamente áreas do app</p>
               </div>
               <Button onClick={() => navigate('/groups')}>
-                Ver grupos
+                Ir para Grupos
               </Button>
             </div>
           </Card>
         </div>
       </main>
 
-      <CreateGroupDialog open={showCreateGroup} onOpenChange={setShowCreateGroup} />
+      <CreateGroupDialog 
+        open={createType !== null} 
+        onOpenChange={(open) => setCreateType(open ? (createType ?? "split") : null)} 
+        defaultType={createType ?? "split"}
+      />
     </div>
   );
 };

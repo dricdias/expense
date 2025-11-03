@@ -107,7 +107,7 @@ export const useGroups = () => {
   }, [user, queryClient]);
 
   const createGroup = useMutation({
-    mutationFn: async ({ name, description, members }: { name: string; description?: string; members: string[] }) => {
+    mutationFn: async ({ name, description, members, type = 'split' }: { name: string; description?: string; members: string[]; type?: 'split' | 'reimbursement' }) => {
       if (!user) throw new Error('Not authenticated');
 
       const { data: group, error: groupError } = await supabase
@@ -116,11 +116,19 @@ export const useGroups = () => {
           name,
           description,
           created_by: user.id,
+          type,
+          reimbursement_debtor_id: type === 'reimbursement' ? user.id : null,
         })
         .select()
         .single();
 
-      if (groupError) throw groupError;
+      if (groupError) {
+        const msg = groupError.message || '';
+        if (msg.includes('schema cache') || msg.includes('reimbursement_debtor_id') || msg.includes('column') || msg.includes('type')) {
+          throw new Error('Migração necessária: aplique as migrações do Supabase para adicionar as colunas "type" e "reimbursement_debtor_id" na tabela groups. Depois, reinicie o servidor e tente novamente.');
+        }
+        throw groupError;
+      }
 
       const { error: membersError } = await supabase
         .from('group_members')

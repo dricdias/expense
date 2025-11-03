@@ -9,9 +9,10 @@ import { useGroups } from "@/hooks/useGroups";
 interface CreateGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultType?: "split" | "reimbursement";
 }
 
-export const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps) => {
+export const CreateGroupDialog = ({ open, onOpenChange, defaultType = "split" }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState<string[]>([""]);
   const { createGroup, isCreating } = useGroups();
@@ -19,7 +20,7 @@ export const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps
   const handleSubmit = () => {
     if (!groupName.trim()) return;
 
-    createGroup({ name: groupName, members: [] }, {
+    createGroup({ name: groupName, members: [], type: defaultType }, {
       onSuccess: () => {
         setGroupName("");
         setMembers([""]);
@@ -34,22 +35,31 @@ export const CreateGroupDialog = ({ open, onOpenChange }: CreateGroupDialogProps
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Users className="w-5 h-5" />
-            Create New Group
+            {defaultType === "reimbursement" ? "Criar novo grupo de reembolso" : "Criar novo grupo"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="group-name" className="text-foreground">Group Name</Label>
-            <Input id="group-name" placeholder="Ex: Beach Trip 2025" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="bg-background border-border" />
+            <Label htmlFor="group-name" className="text-foreground">Nome do grupo</Label>
+            <Input id="group-name" placeholder="Ex: Viagem Praia 2025" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="bg-background border-border" />
           </div>
           <div className="space-y-2">
-            <Label className="text-muted-foreground text-sm">You will be added as the group creator</Label>
-            <p className="text-xs text-muted-foreground">Other members can be invited after creating the group</p>
+            {defaultType === "reimbursement" ? (
+              <>
+                <Label className="text-muted-foreground text-sm">Este é um grupo de reembolso</Label>
+                <p className="text-xs text-muted-foreground">As despesas não são divididas; o criador deve reembolsar o outro membro. Os acertos funcionam como nos grupos de divisão.</p>
+              </>
+            ) : (
+              <>
+                <Label className="text-muted-foreground text-sm">Você será adicionado como criador do grupo</Label>
+                <p className="text-xs text-muted-foreground">Outros membros podem ser convidados após criar o grupo</p>
+              </>
+            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={!groupName.trim() || isCreating} className="bg-primary hover:bg-primary/90">{isCreating ? "Creating..." : "Create Group"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={!groupName.trim() || isCreating} className="bg-primary hover:bg-primary/90">{isCreating ? "Criando..." : "Criar grupo"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
