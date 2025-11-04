@@ -179,6 +179,8 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          type: string
+          reimbursement_debtor_id: string | null
         }
         Insert: {
           created_at?: string
@@ -186,6 +188,8 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          type?: string
+          reimbursement_debtor_id?: string | null
         }
         Update: {
           created_at?: string
@@ -193,6 +197,8 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          type?: string
+          reimbursement_debtor_id?: string | null
         }
         Relationships: [
           {

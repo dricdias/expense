@@ -120,21 +120,20 @@ export const useSendGroupInvite = () => {
 
       console.log('Sending invite:', { groupId, userId, invitedBy: user.id });
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('group_invites')
         .insert({
           group_id: groupId,
           invited_user_id: userId,
           invited_by: user.id,
-        })
-        .select();
+        });
 
       if (error) {
         console.error('Error sending invite:', error);
         throw error;
       }
 
-      console.log('Invite created:', data);
+      console.log('Invite created');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-members'] });
