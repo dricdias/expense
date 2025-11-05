@@ -61,6 +61,29 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
     });
   };
 
+  const isEmail = (value: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  };
+
+  const handleInviteByEmail = () => {
+    if (!groupId || !isEmail(searchTerm)) return;
+    const email = searchTerm.toLowerCase();
+    sendInvite({ groupId, email }, {
+      onSuccess: () => {
+        // Opcional: abrir o cliente de e-mail padrão com template
+        const subject = encodeURIComponent("Convite para grupo no Agility Expenses");
+        const body = encodeURIComponent(
+          `Oi!\n\nVocê foi convidado para participar de um grupo no Agility Expenses.\n\nPara aceitar, acesse: ${window.location.origin}/#/auth e cadastre-se com este e-mail (${email}). Após o cadastro, você verá o convite pendente em Grupos.\n\nLink da aplicação: ${window.location.origin}/#/\n\nAbraços!`
+        );
+        try {
+          window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
+        } catch (_) {}
+        setSearchTerm("");
+        onOpenChange(false);
+      }
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -138,9 +161,23 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
             )}
 
             {!isLoading && searchTerm.length >= 2 && (!searchResults || searchResults.length === 0) && (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum usuário encontrado
-              </p>
+              <div className="space-y-3 py-4">
+                <p className="text-center text-muted-foreground">Nenhum usuário encontrado</p>
+                {isEmail(searchTerm) && (
+                  <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground">Convidar por e-mail</p>
+                      <p className="text-xs text-muted-foreground">{searchTerm.toLowerCase()}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        A pessoa receberá o convite ao se cadastrar com este e-mail.
+                      </p>
+                    </div>
+                    <Button onClick={handleInviteByEmail} disabled={isSending} size="sm">
+                      Enviar convite
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
 
             {searchTerm.length < 2 && (

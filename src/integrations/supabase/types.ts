@@ -104,7 +104,8 @@ export type Database = {
           group_id: string
           id: string
           invited_by: string
-          invited_user_id: string
+          invited_user_id: string | null
+          invited_email: string | null
           status: string
           updated_at: string | null
         }
@@ -113,7 +114,8 @@ export type Database = {
           group_id: string
           id?: string
           invited_by: string
-          invited_user_id: string
+          invited_user_id?: string | null
+          invited_email?: string | null
           status?: string
           updated_at?: string | null
         }
@@ -122,7 +124,8 @@ export type Database = {
           group_id?: string
           id?: string
           invited_by?: string
-          invited_user_id?: string
+          invited_user_id?: string | null
+          invited_email?: string | null
           status?: string
           updated_at?: string | null
         }

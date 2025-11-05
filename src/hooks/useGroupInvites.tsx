@@ -17,7 +17,7 @@ export const useGroupInvites = () => {
       const { data: invites, error } = await supabase
         .from('group_invites')
         .select('*, group:groups(name)')
-        .eq('invited_user_id', user.id)
+        .or(`invited_user_id.eq.${user.id},invited_email.eq.${user.email}`)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -46,8 +46,8 @@ export const useGroupInvites = () => {
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase
-      .channel('group-invites')
+    const channelById = supabase
+      .channel('group-invites-by-id')
       .on(
         'postgres_changes',
         {
@@ -62,8 +62,27 @@ export const useGroupInvites = () => {
       )
       .subscribe();
 
+    const channelByEmail = user.email
+      ? supabase
+          .channel('group-invites-by-email')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'group_invites',
+              filter: `invited_email=eq.${user.email}`,
+            },
+            () => {
+              queryClient.invalidateQueries({ queryKey: ['group-invites'] });
+            }
+          )
+          .subscribe()
+      : null;
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelById);
+      if (channelByEmail) supabase.removeChannel(channelByEmail);
     };
   }, [user, queryClient]);
 
@@ -115,16 +134,17 @@ export const useSendGroupInvite = () => {
   const { user } = useAuth();
 
   const sendInvite = useMutation({
-    mutationFn: async ({ groupId, userId }: { groupId: string; userId: string }) => {
+    mutationFn: async ({ groupId, userId, email }: { groupId: string; userId?: string; email?: string }) => {
       if (!user) throw new Error('Not authenticated');
 
-      console.log('Sending invite:', { groupId, userId, invitedBy: user.id });
+      console.log('Sending invite:', { groupId, userId, email, invitedBy: user.id });
 
       const { error } = await supabase
         .from('group_invites')
         .insert({
           group_id: groupId,
-          invited_user_id: userId,
+          invited_user_id: userId ?? null,
+          invited_email: email ? email.toLowerCase() : null,
           invited_by: user.id,
         });
 
@@ -139,7 +159,7 @@ export const useSendGroupInvite = () => {
       queryClient.invalidateQueries({ queryKey: ['group-members'] });
       toast({
         title: "Convite enviado!",
-        description: "O usuário receberá uma notificação para aceitar o convite",
+        description: "Se for por e-mail, a pessoa verá o convite ao se cadastrar",
       });
     },
     onError: (error: any) => {
