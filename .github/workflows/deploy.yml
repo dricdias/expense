@@ -26,6 +26,9 @@ jobs:
 
       - name: Build with base for GitHub Pages
         run: npm run build -- --base=/expense/
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Add 404.html for SPA fallback
         run: cp dist/index.html dist/404.html
