@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Users, ArrowRight, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { GroupInvitesNotification } from "@/components/GroupInvitesNotification";
@@ -82,9 +83,16 @@ const Groups = () => {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                          {group.name}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                            {group.name}
+                          </h3>
+                          {group.type && (
+                            <Badge variant={group.type === 'reimbursement' ? 'destructive' : 'secondary'}>
+                              {group.type === 'reimbursement' ? 'Reembolso' : 'Divisão'}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Users className="w-4 h-4" />

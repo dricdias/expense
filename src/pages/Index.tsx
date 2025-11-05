@@ -59,16 +59,7 @@ const Index = () => {
               className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Novo grupo divisão de despesas
-            </Button>
-            <Button 
-              onClick={() => setCreateType("reimbursement")}
-              size="lg"
-              variant="outline"
-              className="w-full sm:w-auto"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Novo grupo de reembolso
+              Criar Grupo
             </Button>
           </div>
         </div>

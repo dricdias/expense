@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, Plus, Users } from "lucide-react";
 import { useGroups } from "@/hooks/useGroups";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface CreateGroupDialogProps {
   open: boolean;
@@ -15,12 +16,13 @@ interface CreateGroupDialogProps {
 export const CreateGroupDialog = ({ open, onOpenChange, defaultType = "split" }: CreateGroupDialogProps) => {
   const [groupName, setGroupName] = useState("");
   const [members, setMembers] = useState<string[]>([""]);
+  const [groupType, setGroupType] = useState<"split" | "reimbursement">(defaultType);
   const { createGroup, isCreating } = useGroups();
 
   const handleSubmit = () => {
     if (!groupName.trim()) return;
 
-    createGroup({ name: groupName, members: [], type: defaultType }, {
+    createGroup({ name: groupName, members: [], type: groupType }, {
       onSuccess: () => {
         setGroupName("");
         setMembers([""]);
@@ -35,7 +37,7 @@ export const CreateGroupDialog = ({ open, onOpenChange, defaultType = "split" }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Users className="w-5 h-5" />
-            {defaultType === "reimbursement" ? "Criar novo grupo de reembolso" : "Criar novo grupo"}
+            {groupType === "reimbursement" ? "Criar novo grupo de reembolso" : "Criar novo grupo"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 py-4">
@@ -44,7 +46,20 @@ export const CreateGroupDialog = ({ open, onOpenChange, defaultType = "split" }:
             <Input id="group-name" placeholder="Ex: Viagem Praia 2025" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="bg-background border-border" />
           </div>
           <div className="space-y-2">
-            {defaultType === "reimbursement" ? (
+            <Label className="text-foreground">Tipo do grupo</Label>
+            <RadioGroup value={groupType} onValueChange={(v) => setGroupType(v as "split" | "reimbursement")} className="grid grid-cols-2 gap-3">
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
+                <RadioGroupItem value="split" id="type-split" />
+                <Label htmlFor="type-split" className="cursor-pointer">Divisão</Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 rounded-lg border border-border">
+                <RadioGroupItem value="reimbursement" id="type-reimbursement" />
+                <Label htmlFor="type-reimbursement" className="cursor-pointer">Reembolso</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="space-y-2">
+            {groupType === "reimbursement" ? (
               <>
                 <Label className="text-muted-foreground text-sm">Este é um grupo de reembolso</Label>
                 <p className="text-xs text-muted-foreground">As despesas não são divididas; o criador deve reembolsar o outro membro. Os acertos funcionam como nos grupos de divisão.</p>
