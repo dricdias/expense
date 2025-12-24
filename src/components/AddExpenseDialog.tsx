@@ -17,13 +17,14 @@ interface AddExpenseDialogProps {
 export const AddExpenseDialog = ({ open, onOpenChange, groupId }: AddExpenseDialogProps) => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [expenseDate, setExpenseDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { createExpense, isCreating } = useExpenses(groupId);
 
   const handleSubmit = () => {
-    if (!groupId || !description.trim() || !amount.trim()) {
-      toast({ title: "Missing fields", description: "Please fill description and amount", variant: "destructive" });
+    if (!groupId || !description.trim() || !amount.trim() || !expenseDate) {
+      toast({ title: "Missing fields", description: "Please fill description, amount and date", variant: "destructive" });
       return;
     }
     const numAmount = parseFloat(amount);
@@ -31,10 +32,11 @@ export const AddExpenseDialog = ({ open, onOpenChange, groupId }: AddExpenseDial
       toast({ title: "Invalid amount", description: "Please enter a valid amount", variant: "destructive" });
       return;
     }
-    createExpense({ groupId, description, amount: numAmount, receiptFile: receiptFile || undefined }, {
+    createExpense({ groupId, description, amount: numAmount, expenseDate, receiptFile: receiptFile || undefined }, {
       onSuccess: () => {
         setDescription("");
         setAmount("");
+        setExpenseDate(new Date().toISOString().slice(0, 10));
         setReceiptFile(null);
         onOpenChange(false);
       }
@@ -61,6 +63,10 @@ export const AddExpenseDialog = ({ open, onOpenChange, groupId }: AddExpenseDial
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
               <Input id="amount" type="number" step="0.01" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-background border-border pl-7" />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="expense-date" className="text-foreground">Expense Date</Label>
+            <Input id="expense-date" type="date" value={expenseDate} onChange={(e) => setExpenseDate(e.target.value)} className="bg-background border-border" />
           </div>
           <div className="space-y-2">
             <Label className="text-foreground">Receipt (optional)</Label>

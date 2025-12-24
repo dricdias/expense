@@ -9,6 +9,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      // Proxy para evitar CORS ao chamar o webhook em desenvolvimento
+      "/webhook": {
+        target: "https://webhook.agilitytecno.com",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   plugins: [
     react(), 

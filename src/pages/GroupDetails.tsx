@@ -14,6 +14,7 @@ import { useState } from "react";
 import { AddExpenseDialog } from "@/components/AddExpenseDialog";
 import { AddMemberDialog } from "@/components/AddMemberDialog";
 import { EditGroupDialog } from "@/components/EditGroupDialog";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,12 +32,15 @@ const GroupDetails = () => {
   const navigate = useNavigate();
   const { expenses, isLoading: expensesLoading } = useExpenses(groupId || null);
   const { groups, deleteGroup } = useGroups();
-  const { members, isLoading: membersLoading } = useGroupMembers(groupId || null);
+  const { members, isLoading: membersLoading, removeMember, isRemoving } = useGroupMembers(groupId || null);
+  const { user } = useAuth();
   
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [showEditGroup, setShowEditGroup] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{ id: string; full_name?: string } | null>(null);
 
   const group = groups?.find((g: any) => g.id === groupId);
 
@@ -48,6 +52,25 @@ const GroupDetails = () => {
         }
       });
     }
+  };
+
+  const confirmRemoveMember = (member: any) => {
+    setMemberToRemove({ id: member.user_id, full_name: member.profiles?.full_name });
+    setShowRemoveDialog(true);
+  };
+
+  const handleRemoveMember = () => {
+    if (!groupId || !memberToRemove) return;
+    removeMember({ groupId, userId: memberToRemove.id }, {
+      onSuccess: () => {
+        setShowRemoveDialog(false);
+        setMemberToRemove(null);
+      },
+      onSettled: () => {
+        setShowRemoveDialog(false);
+        setMemberToRemove(null);
+      }
+    });
   };
 
   if (!groupId) {
@@ -160,6 +183,18 @@ const GroupDetails = () => {
                             {member.profiles?.email || 'Email não disponível'}
                           </p>
                         </div>
+                        <div className="flex-shrink-0">
+                          {user && (group?.created_by === user.id || member.user_id === user.id) && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={isRemoving}
+                              onClick={() => confirmRemoveMember(member)}
+                            >
+                              Remover
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </Card>
                   ))}
@@ -222,6 +257,23 @@ const GroupDetails = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteGroup}>
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover membro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {memberToRemove?.full_name ? `Você está prestes a remover ${memberToRemove.full_name} deste grupo.` : 'Você está prestes a remover este membro do grupo.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveMember}>
+              Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

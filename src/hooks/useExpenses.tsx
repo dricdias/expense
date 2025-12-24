@@ -74,11 +74,13 @@ export const useExpenses = (groupId: string | null) => {
       groupId, 
       description, 
       amount, 
+      expenseDate,
       receiptFile 
     }: { 
       groupId: string; 
       description: string; 
       amount: number; 
+      expenseDate: string;
       receiptFile?: File 
     }) => {
       if (!user) throw new Error('Not authenticated');
@@ -111,12 +113,40 @@ export const useExpenses = (groupId: string | null) => {
           paid_by: user.id,
           description,
           amount,
+          expense_date: expenseDate,
           receipt_url: receiptUrl,
         })
         .select()
         .single();
 
-      if (expenseError) throw expenseError;
+      if (expenseError) {
+        const msg = expenseError.message?.toLowerCase() || "";
+        const isSchemaCacheIssue = msg.includes("schema cache") || msg.includes("expense_date");
+        if (isSchemaCacheIssue) {
+          // Retry without expense_date to avoid blocking while migration isn't applied
+          const { data: fallbackExpense, error: fallbackError } = await supabase
+            .from('expenses')
+            .insert({
+              group_id: groupId,
+              paid_by: user.id,
+              description,
+              amount,
+              receipt_url: receiptUrl,
+            })
+            .select()
+            .single();
+
+          if (fallbackError) throw fallbackError;
+
+          toast({
+            title: "Coluna de data indisponível",
+            description: "Aplicaremos a migration e atualizaremos a criação de data em seguida.",
+          });
+
+          return fallbackExpense;
+        }
+        throw expenseError;
+      }
 
       return expense;
     },

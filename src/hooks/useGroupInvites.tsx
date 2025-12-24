@@ -139,6 +139,29 @@ export const useSendGroupInvite = () => {
 
       console.log('Sending invite:', { groupId, userId, email, invitedBy: user.id });
 
+      const { data: groupCreator } = await supabase
+        .from('groups')
+        .select('created_by')
+        .eq('id', groupId)
+        .maybeSingle();
+
+      const isCreator = groupCreator?.created_by === user.id;
+
+      let isMember = false;
+      if (!isCreator) {
+        const { data: membership } = await supabase
+          .from('group_members')
+          .select('user_id')
+          .eq('group_id', groupId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        isMember = !!membership;
+      }
+
+      if (!isCreator && !isMember) {
+        throw new Error('Você precisa ser membro ou criador do grupo para enviar convites.');
+      }
+
       const { error } = await supabase
         .from('group_invites')
         .insert({
@@ -154,19 +177,84 @@ export const useSendGroupInvite = () => {
       }
 
       console.log('Invite created');
+
+      // Se for convite por e-mail, enviar webhook (não bloquear em caso de falha)
+      if (email) {
+        const payload = {
+          event: 'group_invite_created',
+          group_id: groupId,
+          invited_email: email.toLowerCase(),
+          invited_by: user.id,
+          status: 'pending',
+          app_url: typeof window !== 'undefined' ? window.location.origin : undefined,
+          timestamp: new Date().toISOString(),
+        };
+
+        // Preferir Edge Function em produção; manter proxy em desenvolvimento
+        const useEdge = import.meta.env.VITE_USE_EDGE_FUNCTIONS === 'true';
+        const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        const webhookUrl = isLocalhost
+          ? '/webhook/expense'
+          : 'https://webhook.agilitytecno.com/webhook/expense';
+
+        try {
+          if (useEdge) {
+            const { error } = await supabase.functions.invoke('invite-webhook', {
+              body: payload,
+            });
+            if (error) throw error;
+            console.log('Webhook dispatched via Edge Function', payload);
+          } else {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              mode: isLocalhost ? 'cors' : 'no-cors',
+              body: JSON.stringify(payload),
+            });
+            console.log('Webhook dispatched via proxy/direct', { url: webhookUrl, payload });
+          }
+        } catch (err) {
+          console.warn('Falha ao enviar webhook de convite:', err);
+          // Fallback: tenta via proxy se a Edge Function falhar
+          try {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              mode: isLocalhost ? 'cors' : 'no-cors',
+              body: JSON.stringify(payload),
+            });
+            console.log('Webhook fallback dispatched via proxy/direct', { url: webhookUrl, payload });
+          } catch (fallbackErr) {
+            console.warn('Fallback também falhou ao enviar webhook:', fallbackErr);
+            toast({
+              title: 'Aviso',
+              description: 'Convite criado, mas o webhook não pôde ser enviado.',
+            });
+          }
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['group-members'] });
       toast({
-        title: "Convite enviado!",
-        description: "Se for por e-mail, a pessoa verá o convite ao se cadastrar",
+        title: 'Convite enviado!',
+        description: variables?.email
+          ? 'Webhook enviado para notificar o convite por e-mail.'
+          : 'Se for por e-mail, a pessoa verá o convite ao se cadastrar',
       });
     },
     onError: (error: any) => {
-      if (error.message?.includes('duplicate')) {
+      const msg = String(error.message || '').toLowerCase();
+      if (msg.includes('violates') && msg.includes('row level security')) {
+        toast({
+          title: 'Sem permissão',
+          description: 'Você precisa ser membro ou criador do grupo para enviar convites.',
+          variant: 'destructive',
+        });
+      } else if (msg.includes('duplicate')) {
         toast({
           title: "Erro",
-          description: "Este usuário já foi convidado para este grupo",
+          description: "Já existe um convite pendente para este usuário/email neste grupo",
           variant: "destructive",
         });
       } else {

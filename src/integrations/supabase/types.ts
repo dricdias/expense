@@ -58,6 +58,7 @@ export type Database = {
           amount: number
           created_at: string
           description: string
+          expense_date: string
           group_id: string
           id: string
           paid_by: string
@@ -67,6 +68,7 @@ export type Database = {
           amount: number
           created_at?: string
           description: string
+          expense_date?: string
           group_id: string
           id?: string
           paid_by: string
@@ -76,6 +78,7 @@ export type Database = {
           amount?: number
           created_at?: string
           description?: string
+          expense_date?: string
           group_id?: string
           id?: string
           paid_by?: string

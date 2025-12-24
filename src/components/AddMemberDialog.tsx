@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { toast } from "@/hooks/use-toast";
 
 interface AddMemberDialogProps {
   open: boolean;
@@ -31,6 +32,28 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
 
   // Get member IDs to check if user is already a member
   const memberIds = members?.map((m: any) => m.user_id) || [];
+
+  const { data: pendingInvitesData, isLoading: pendingLoading } = useQuery({
+    queryKey: ['group-pending-invites', groupId],
+    queryFn: async () => {
+      if (!groupId) return [] as any[];
+      const { data, error } = await supabase
+        .from('group_invites')
+        .select('invited_user_id, invited_email, status')
+        .eq('group_id', groupId)
+        .eq('status', 'pending');
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!groupId,
+  });
+
+  const pendingUserIds = (pendingInvitesData || [])
+    .map((i: any) => i.invited_user_id)
+    .filter((v: any) => !!v);
+  const pendingEmails = (pendingInvitesData || [])
+    .map((i: any) => (i.invited_email ? String(i.invited_email).toLowerCase() : null))
+    .filter((v: any) => !!v);
 
   // Search users by name or email
   const { data: searchResults, isLoading } = useQuery({
@@ -70,14 +93,11 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
     const email = searchTerm.toLowerCase();
     sendInvite({ groupId, email }, {
       onSuccess: () => {
-        // Opcional: abrir o cliente de e-mail padrão com template
-        const subject = encodeURIComponent("Convite para grupo no Agility Expenses");
-        const body = encodeURIComponent(
-          `Oi!\n\nVocê foi convidado para participar de um grupo no Agility Expenses.\n\nPara aceitar, acesse: ${window.location.origin}/#/auth e cadastre-se com este e-mail (${email}). Após o cadastro, você verá o convite pendente em Grupos.\n\nLink da aplicação: ${window.location.origin}/#/\n\nAbraços!`
-        );
-        try {
-          window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
-        } catch (_) {}
+        // Evitar abrir cliente de e-mail para não escurecer/navegar o preview
+        toast({
+          title: "Convite enviado",
+          description: `Convite enviado para ${email}. Ao se cadastrar, a pessoa verá o convite em Grupos.`
+        });
         setSearchTerm("");
         onOpenChange(false);
       }
@@ -129,6 +149,7 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
                   .slice(0, 2);
 
                 const isAlreadyMember = memberIds.includes(user.id);
+                const hasPendingInvite = pendingUserIds.includes(user.id);
 
                 return (
                   <div
@@ -150,10 +171,10 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
                     </div>
                     <Button
                       onClick={() => handleInviteUser(user.id)}
-                      disabled={isSending || isAlreadyMember}
+                      disabled={isSending || isAlreadyMember || hasPendingInvite}
                       size="sm"
                     >
-                      {isAlreadyMember ? "Membro" : "Convidar"}
+                      {isAlreadyMember ? "Membro" : hasPendingInvite ? "Pendente" : "Convidar"}
                     </Button>
                   </div>
                 );
@@ -172,8 +193,8 @@ export const AddMemberDialog = ({ open, onOpenChange, groupId }: AddMemberDialog
                         A pessoa receberá o convite ao se cadastrar com este e-mail.
                       </p>
                     </div>
-                    <Button onClick={handleInviteByEmail} disabled={isSending} size="sm">
-                      Enviar convite
+                    <Button onClick={handleInviteByEmail} disabled={isSending || pendingEmails.includes(searchTerm.toLowerCase())} size="sm">
+                      {pendingEmails.includes(searchTerm.toLowerCase()) ? "Pendente" : "Enviar convite"}
                     </Button>
                   </div>
                 )}

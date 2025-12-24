@@ -14,8 +14,10 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
   const { user } = useAuth();
 
   const handleMarkAsPaid = () => {
-    if (settlements.length > 0) {
-      markAsPaid(settlements);
+    if (!user) return;
+    const userSettlements = settlements.filter(s => s.fromId === user.id);
+    if (userSettlements.length > 0) {
+      markAsPaid(userSettlements);
     }
   };
 
@@ -75,61 +77,62 @@ export const ExpenseSummary = ({ groupId }: ExpenseSummaryProps) => {
       ) : (
         <>
           {settlements.map((settlement, index) => (
-                <Card
-                  key={index}
-                  className="p-4 sm:p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* From User */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-destructive">
-                          {settlement.from[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{settlement.from}</p>
-                        <p className="text-sm text-muted-foreground">deve pagar</p>
-                      </div>
+            <div key={index}>
+              <Card
+                className="p-4 sm:p-6 bg-card border-border shadow-smooth hover:shadow-lg transition-all duration-300"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  {/* From User */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-destructive">
+                        {settlement.from[0]}
+                      </span>
                     </div>
-
-                    {/* Arrow */}
-                    <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto sm:mx-4 rotate-90 sm:rotate-0 flex-shrink-0" />
-
-                    {/* To User */}
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-semibold text-accent">
-                          {settlement.to[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{settlement.to}</p>
-                        <p className="text-sm text-muted-foreground">vai receber</p>
-                      </div>
-                    </div>
-
-                    {/* Amount */}
-                    <div className="text-center sm:text-right sm:ml-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-border">
-                      <p className="text-2xl sm:text-xl font-bold text-accent">
-                        ${settlement.amount.toFixed(2)}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{settlement.from}</p>
+                      <p className="text-sm text-muted-foreground">deve pagar</p>
                     </div>
                   </div>
-                </Card>
-            ))}
 
-          {userHasDebts && (
-            <Button 
-              className="w-full mt-6 bg-accent hover:bg-accent/90" 
-              size="lg"
-              onClick={handleMarkAsPaid}
-              disabled={isMarking}
-            >
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-              {isMarking ? "Processando..." : "Confirmar que Paguei"}
-            </Button>
-          )}
+                  {/* Arrow */}
+                  <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto sm:mx-4 rotate-90 sm:rotate-0 flex-shrink-0" />
+
+                  {/* To User */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-accent">
+                        {settlement.to[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{settlement.to}</p>
+                      <p className="text-sm text-muted-foreground">vai receber</p>
+                    </div>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="text-center sm:text-right sm:ml-4 pt-4 sm:pt-0 border-t sm:border-t-0 border-border">
+                    <p className="text-2xl sm:text-xl font-bold text-accent">
+                      ${settlement.amount.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              {settlement.fromId === user?.id && (
+                <Button
+                  className="w-full mt-3 bg-accent hover:bg-accent/90"
+                  size="sm"
+                  onClick={() => markAsPaid([settlement])}
+                  disabled={isMarking}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  {isMarking ? "Processando..." : "Confirmar que Paguei"}
+                </Button>
+              )}
+            </div>
+          ))}
         </>
       )}
     </div>
